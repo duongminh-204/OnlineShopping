@@ -25,6 +25,12 @@ namespace ASP.Models.Domains
         [Range(0, int.MaxValue)]
         public int QuantityVariants { get; set; } = 0;
 
+        [StringLength(20)]
+        public string? Size { get; set; }
+
+        [StringLength(50)]
+        public string? Color { get; set; }
+
         [ForeignKey("ProductId")]
         public Product Product { get; set; }
     }

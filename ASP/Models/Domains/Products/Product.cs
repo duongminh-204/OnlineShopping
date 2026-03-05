@@ -23,12 +23,6 @@ namespace ASP.Models.Domains
         [Range(0, int.MaxValue)]
         public int Quantity { get; set; } = 0;
 
-        [StringLength(20)]
-        public string? Size { get; set; }
-
-        [StringLength(50)]
-        public string? Color { get; set; }
-
         // Navigation
         [ForeignKey("CategoryId")]
         public Category Category { get; set; }

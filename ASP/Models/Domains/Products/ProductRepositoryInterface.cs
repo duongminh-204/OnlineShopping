@@ -1,6 +1,8 @@
 ﻿namespace ASP.Models.Domains
 {
-    public  interface ProductRepositoryInterface
+    public interface ProductRepositoryInterface
     {
+        IEnumerable<Product> GetAllProducts();
+     
     }
 }

@@ -8,8 +8,133 @@
 @inject IAuthorizationService AuthorizationService
 @addTagHelper *, ReflectionIT.Mvc.Paging
 <link rel="stylesheet" href="~/css/Home.css" />
+<link rel="stylesheet" href="~/css/HomePage.css" />
 @{
     ViewData["Title"] = "LUXE FASHION - Shop Thời Trang Online";
     Layout = "../Shared/Layout/Front/_Layout";
 }
 
+<section class="hero-luxe text-center position-relative" style="height: 100vh; background: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url('https://source.unsplash.com/random/1920x1080/?luxury-fashion-model') center/cover no-repeat;">
+    <div class="container h-100 d-flex flex-column justify-content-center align-items-center text-white" data-aos="fade-down" data-aos-delay="200">
+        <div class="mb-4" data-aos="fade-up" data-aos-delay="400">
+            <span class="badge bg-warning text-dark px-4 py-2 fs-6">NEW COLLECTION 2026</span>
+        </div>
+        <h1 class="display-1 fw-bold mb-3" style="letter-spacing: 6px; font-family: 'Playfair Display', serif;" data-aos="fade-up" data-aos-delay="600">LUXE FASHION</h1>
+        <p class="lead fs-3 mb-5" data-aos="fade-up" data-aos-delay="800">Thời trang cao cấp • Phong cách riêng biệt</p>
+
+        <div data-aos="fade-up" data-aos-delay="1000">
+            <a href="/san-pham" class="btn luxury-btn btn-lg px-5 py-3 me-3">KHÁM PHÁ BỘ SƯU TẬP</a>
+            <a href="/khuyen-mai" class="btn btn-outline-light btn-lg px-5 py-3">XEM SALE NGAY</a>
+        </div>
+
+        <div class="position-absolute bottom-0 start-50 translate-middle-x mb-5" data-aos="fade-up" data-aos-delay="1200">
+            <a href="#categories" class="text-white text-decoration-none scroll-down">
+                <i class="bi bi-chevron-down fs-3"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+
+<section id="categories" class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="display-6 fw-bold">KHÁM PHÁ DANH MỤC</h2>
+            <p class="text-muted">Chọn phong cách dành riêng cho bạn</p>
+        </div>
+        <div class="row g-4">
+            @for (int i = 1; i <= 4; i++)
+            {
+                var delay = (i - 1) * 150;
+                <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="@delay">
+                    <a href="/danh-muc/@(i == 1 ? "nu" : i == 2 ? "nam" : i == 3 ? "tre-em" : "phu-kien")" class="text-decoration-none">
+                        <div class="category-card position-relative overflow-hidden rounded-3 shadow-sm">
+                            <img src="https://picsum.photos/id/@(1000 + i)/600/700" class="img-fluid w-100" style="height: 380px; object-fit: cover;" alt="">
+                            <div class="position-absolute bottom-0 start-0 end-0 bg-gradient text-white text-center py-4">
+                                <h5 class="mb-0 fw-bold">@(i == 1 ? "THỜI TRANG NỮ" : i == 2 ? "THỜI TRANG NAM" : i == 3 ? "TRẺ EM" : "PHỤ KIỆN")</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4" data-aos="fade-up">
+            <h2 class="display-6 fw-bold">SẢN PHẨM BÁN CHẠY</h2>
+            <a href="/san-pham" class="text-dark fw-bold text-decoration-none">Xem tất cả →</a>
+        </div>
+        <div class="row g-4">
+            @for (int i = 1; i <= 8; i++)
+            {
+                var delay = (i - 1) * 80;
+                <div class="col-lg-3 col-md-6 col-6" data-aos="fade-up" data-aos-delay="@delay">
+                    <div class="product-card card h-100 border-0 shadow-sm overflow-hidden">
+                        <div class="position-relative">
+                            <img src="https://picsum.photos/id/@(100 + i)/400/500" class="card-img-top" style="height: 320px; object-fit: cover;" alt="">
+                            <span class="badge bg-danger position-absolute top-0 start-0 m-3">BEST</span>
+                        </div>
+                        <div class="card-body text-center p-3">
+                            <h6 class="card-title mb-1">Áo Khoác Da Cao Cấp @(i)</h6>
+                            <p class="text-muted small mb-2">LUXE Collection</p>
+                            <p class="fw-bold text-danger fs-5 mb-3">2,890,000 ₫</p>
+                            <button onclick="addToCart(this)" class="luxury-btn btn btn-sm w-100">THÊM VÀO GIỎ</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+
+<section class="py-5 text-white text-center overflow-hidden" style="background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url('https://picsum.photos/id/1015/1920/600') center/cover;" data-aos="zoom-in">
+    <div class="container py-5" data-aos="fade-up">
+        <h2 class="display-4 fw-bold mb-3">GIẢM TỚI 50% TOÀN BỘ BỘ SƯU TẬP XUÂN 2026</h2>
+        <p class="lead mb-4">Chỉ còn 7 ngày nữa thôi!</p>
+        <a href="/khuyen-mai" class="btn btn-light btn-lg px-5 py-3 fw-bold">MUA NGAY - TIẾT KIỆM NGAY</a>
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="display-6 fw-bold text-center mb-5" data-aos="fade-up">HÀNG MỚI VỀ</h2>
+        <div class="row g-4">
+            @for (int i = 1; i <= 4; i++)
+            {
+                var delay = (i - 1) * 150;
+                <div class="col-lg-3 col-md-6 col-6" data-aos="fade-up" data-aos-delay="@delay">
+                    <div class="product-card card h-100 border-0 shadow-sm overflow-hidden">
+                        <div class="position-relative">
+                            <img src="https://picsum.photos/id/@(200 + i)/400/500" class="card-img-top" style="height: 320px; object-fit: cover;" alt="">
+                            <span class="badge bg-success position-absolute top-0 end-0 m-3">NEW</span>
+                        </div>
+                        <div class="card-body text-center p-3">
+                            <h6 class="card-title mb-1">Đầm Maxi Lụa Sang Trọng @(i)</h6>
+                            <p class="text-muted small mb-2">LUXE Spring</p>
+                            <p class="fw-bold text-danger fs-5 mb-3">1,990,000 ₫</p>
+                            <button onclick="addToCart(this)" class="luxury-btn btn btn-sm w-100">THÊM VÀO GIỎ</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<script>
+    function addToCart(btn) {
+        const originalText = btn.innerHTML;
+        btn.style.transition = 'all 0.3s';
+        btn.innerHTML = '✓ ĐÃ THÊM';
+        btn.disabled = true;
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 1800);
+    }
+</script>

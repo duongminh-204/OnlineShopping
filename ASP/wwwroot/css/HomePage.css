@@ -1,0 +1,61 @@
+﻿
+.luxury-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+}
+
+.luxury-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 10px 20px rgba(212, 175, 119, 0.3);
+}
+
+.luxury-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 40%;
+    height: 300%;
+    background: linear-gradient(120deg, rgba(255,255,255,0.4), rgba(255,255,255,0));
+    transform: skewX(-25deg);
+    animation: shine 4s infinite;
+}
+
+@keyframes shine {
+    0% {
+        transform: translateX(-150%) skewX(-25deg);
+    }
+
+    20% {
+        transform: translateX(300%) skewX(-25deg);
+    }
+}
+
+.product-card {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+    .product-card:hover {
+        transform: translateY(-15px) scale(1.03);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+    }
+
+.scroll-down {
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(15px);
+    }
+
+    80%, 100% {
+        transform: translateY(0);
+    }
+}
+

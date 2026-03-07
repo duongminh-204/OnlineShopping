@@ -157,11 +157,13 @@
     <i class="bi bi-search"></i>
 </a>
                                             <!-- Add to cart -->
-                                            <a href="#"
-                                               class="icon-btn cart-btn"
-                                               title="Thêm vào giỏ">
-                                                <i class="bi bi-bag"></i>
-                                            </a>
+                                           <a asp-controller="Cart"
+   asp-action="AddToCart"
+   asp-route-variantId="@p.ProductVariants.FirstOrDefault()?.VariantId"
+   class="icon-btn cart-btn"
+   title="Thêm vào giỏ">
+    <i class="bi bi-bag"></i>
+</a>
                                         </div>
                                     </div>
                                 </div>

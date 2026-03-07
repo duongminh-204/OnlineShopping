@@ -1,6 +1,7 @@
-﻿namespace ASP.Models.Domains.CartItems
+﻿namespace ASP.Models.Domains
 {
     public interface CartItemRepositoryInterface
     {
+        Task AddToCartAsync(int cartId, int variantId, int quantity = 1);
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace ASP.Models.Domains
 {
-    public class ProductVariantRepository
+    public class ProductVariantRepository : ProductVariantRepositoryInterface
     {
     }
 }

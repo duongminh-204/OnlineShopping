@@ -17,8 +17,33 @@ namespace ASP.Models.Domains
             return _context.Products
                 .Include(p => p.Category)
                 .Include(p => p.ProductImages)
+                .Include(p => p.ProductVariants)
                 .OrderByDescending(p => p.ProductId)
                 .ToList();
         }
+      
+        public IEnumerable<Product> GetBestSellingProducts(int take = 8)
+        {
+            return _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductVariants)
+                .Where(p => p.IsActive)
+                .Take(take)
+                .ToList();
+        }
+         
+        public IEnumerable<Product> GetNewArrivals(int take = 4)
+        {
+            return _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductVariants)
+                .Where(p => p.IsActive)
+                .OrderByDescending(p => p.ProductId)
+                .Take(take)
+                .ToList();
+        }
     }
+
 }

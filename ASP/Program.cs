@@ -18,6 +18,7 @@ using Microsoft.Extensions.Options;
 using OfficeOpenXml;
 using ReflectionIT.Mvc.Paging;
 using Serilog;
+using ASP.Models.Domains;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -85,13 +86,16 @@ builder.Services.AddPaging(options =>
 #endregion
 #region dependency injection 
 builder.Services.AddScoped<BaseController>();
-//backend  
+//Register repositories Dependency Injection    
 builder.Services.AddTransient<LogRepositoryInterface, LogRepository>();
 builder.Services.AddScoped<AccountRepositoryInterface, AccountRepository>();
 builder.Services.AddScoped<RoleRepositoryInterface, RoleRepository>();
 builder.Services.AddScoped<ThemeOptionRepositoryInterface, ThemeOptionRepository>();
 builder.Services.AddScoped<AuthRepositoryInterface, AuthRepository>();
 builder.Services.AddScoped<MenuRepositoryInterface, MenuRepository>();
+builder.Services.AddScoped<ProductRepositoryInterface, ProductRepository>();
+builder.Services.AddScoped<CategoryRepositoryInterface, CategoryRepository>();  
+//builder.Services.AddScoped<UserPolicyAuthorizationHandler>();
 
 //builder.Services.AddTransient<EmailServiceInterface, GmailSmtpService>();
 // frontend

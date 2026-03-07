@@ -2,16 +2,17 @@
 @using ASP.Controllers.Front
 @model IEnumerable<Product>
 @inject CategoryRepositoryInterface CategoryRepo
-
 @{
     ViewData["Title"] = "Sản phẩm - Fashion Shop";
     Layout = "../Shared/Layout/Front/_Layout";
-
     var categories = CategoryRepo.GetAllCategories();
 }
-<link rel="stylesheet" href="~/css/Product.css" /> 
-<div class="container py-5">
-    <h1 class="fw-bold text-center mb-5 d-lg-none animate__animated animate__fadeIn">
+<link rel="stylesheet" href="~/css/Product.css" />
+<!-- Font Roboto -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<div class="container py-5" style="font-family: 'Roboto', sans-serif;">
+    <h1 class="text-center mb-5 d-lg-none animate__animated animate__fadeIn" style="font-weight: 500;">
         <i class="bi bi-bag-heart-fill text-danger me-2"></i>
         Sản phẩm thời trang
     </h1>
@@ -28,20 +29,24 @@
         <div class="col-lg-3">
             <!-- Offcanvas mobile -->
             <div class="offcanvas offcanvas-start" tabindex="-1" id="categorySidebar" aria-labelledby="categorySidebarLabel">
-                <div class="offcanvas-header border-bottom">
-                    <h5 class="offcanvas-title fw-bold" id="categorySidebarLabel">Danh mục sản phẩm</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+                <div class="offcanvas-header border-bottom" style="background-color: #000; color: white;">
+                    <h5 class="offcanvas-title" id="categorySidebarLabel" style="font-weight: 500;">
+                        <i class="bi bi-tags me-2"></i> Danh mục
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
                 </div>
-                <div class="offcanvas-body px-0">
+                <div class="offcanvas-body px-0" style="background-color: #ffffff;">
                     <div class="list-group list-group-flush">
-                        <a href="@Url.Action("Index", "Product")" 
-                           class="list-group-item list-group-item-action py-3 @(ViewContext.RouteData.Values["category"] == null ? "active" : "")">
-                            <i class="bi bi-grid-3x3-gap me-2"></i> Tất cả sản phẩm
+                        <a href="@Url.Action("Index", "Product")"
+                           class="list-group-item list-group-item-action py-3 @(ViewContext.RouteData.Values["category"] == null ? "active" : "")"
+                           style="background-color: #ffffff; color: #333;">
+                            <i ></i> Tất cả sản phẩm
                         </a>
                         @foreach (var cat in categories)
                         {
                             <a href="@Url.Action("Index", "Product", new { category = cat.CategoryId })"
-                               class="list-group-item list-group-item-action py-3 @(ViewContext.RouteData.Values["category"]?.ToString() == cat.CategoryId.ToString() ? "active" : "")">
+                               class="list-group-item list-group-item-action py-3 @(ViewContext.RouteData.Values["category"]?.ToString() == cat.CategoryId.ToString() ? "active" : "")"
+                               style="background-color: #ffffff; color: #333;">
                                 @cat.CategoryName
                             </a>
                         }
@@ -52,18 +57,20 @@
             <!-- Sidebar desktop (sticky) -->
             <div class="d-none d-lg-block position-sticky top-80 pt-2">
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                    <div class="card-header bg-gradient-primary text-white fw-bold py-3">
+                    <div class="card-header py-3 text-white" style="background-color: #000; font-weight: 500;">
                         <i class="bi bi-tags me-2"></i> Danh mục
                     </div>
-                    <div class="list-group list-group-flush">
-                        <a href="@Url.Action("Index", "Product")" 
-                           class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["category"] == null ? "active" : "")">
+                    <div class="list-group list-group-flush" style="background-color: #ffffff;">
+                        <a href="@Url.Action("Index", "Product")"
+                           class="list-group-item list-group-item-action py-3 @(ViewContext.RouteData.Values["category"] == null ? "active" : "")"
+                           style="color: #333; background-color: #ffffff;">
                             Tất cả sản phẩm
                         </a>
                         @foreach (var cat in categories)
                         {
                             <a href="@Url.Action("Index", "Product", new { category = cat.CategoryId })"
-                               class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["category"]?.ToString() == cat.CategoryId.ToString() ? "active" : "")">
+                               class="list-group-item list-group-item-action py-3 @(ViewContext.RouteData.Values["category"]?.ToString() == cat.CategoryId.ToString() ? "active" : "")"
+                               style="color: #333; background-color: #ffffff;">
                                 @cat.CategoryName
                             </a>
                         }
@@ -90,34 +97,31 @@
                         var price = p.ProductVariants?.FirstOrDefault()?.Price ?? 0;
                         var mainImage = p.ProductImages?.FirstOrDefault(x => x.IsMain);
                         var imageUrl = mainImage?.ImageUrl ?? p.ProductImages?.FirstOrDefault()?.ImageUrl ?? "/images/no-image.jpg";
-
                         <div class="col product-item animate__animated animate__fadeInUp" style="animation-delay: calc(var(--i) * 80ms);">
                             <div class="card h-100 border-0 shadow overflow-hidden rounded-4 position-relative">
                                 <div class="image-wrapper position-relative overflow-hidden">
-                                    <img src="@imageUrl" class="card-img-top" alt="@p.ProductName" 
+                                    <img src="@imageUrl" class="card-img-top" alt="@p.ProductName"
                                          style="height: 220px; object-fit: cover; transition: transform 0.6s ease;" />
                                     <div class="image-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center opacity-0 transition-all">
-                                        <a asp-action="Details" asp-route-id="@p.ProductId" 
+                                        <a asp-action="Details" asp-route-id="@p.ProductId"
                                            class="btn btn-primary btn-lg rounded-pill px-4 shadow-lg">
                                             Xem chi tiết
                                         </a>
                                     </div>
                                 </div>
-
                                 <div class="card-body d-flex flex-column text-center p-4">
-                                    <h5 class="card-title fw-bold mb-2 text-truncate-2">@p.ProductName</h5>
-                                    <p class="fs-4 fw-bold text-danger mb-3 mt-auto">
+                                    <h5 class="card-title mb-2 text-truncate-2" style="font-weight: 400;">@p.ProductName</h5>
+                                    <p class="fs-4 mb-3 mt-auto" style="color: #000; font-weight: 400;">
                                         @if (price > 0)
                                         {
-                                            @price.ToString("N0") <small class="text-muted">đ</small>
+                                            @price.ToString("N0") <small>đ</small>
                                         }
                                         else
                                         {
                                             <span class="text-muted fs-5">Liên hệ</span>
                                         }
                                     </p>
-                                    <!-- Quick view button nhỏ dưới (optional) -->
-                                    <a asp-action="Details" asp-route-id="@p.ProductId" 
+                                    <a asp-action="Details" asp-route-id="@p.ProductId"
                                        class="btn btn-outline-primary btn-sm rounded-pill mt-2">
                                         Chi tiết <i class="bi bi-arrow-right ms-1"></i>
                                     </a>
@@ -126,12 +130,11 @@
                         </div>
                     }
                 </div>
-
             }
         </div>
     </div>
 </div>
 
 @section Styles {
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" /> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 }

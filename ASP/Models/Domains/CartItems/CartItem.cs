@@ -15,7 +15,7 @@ namespace ASP.Models.Domains
         [Range(1, int.MaxValue)]
         public int Quantity { get; set; }
 
-        // Navigation
+       
         [ForeignKey("CartId")]
         public Cart Cart { get; set; }
 

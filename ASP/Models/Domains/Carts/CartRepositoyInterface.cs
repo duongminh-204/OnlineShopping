@@ -2,8 +2,8 @@
 {
     public interface CartRepositoyInterface
     {
-        Task<Cart> GetOrCreateCartAsync(int customerId);
+        Task<Cart> GetOrCreateCartAsync(string customerId);
         Task SaveChangesAsync();
-        Task<Cart?> GetCartWithItemsAsync(int customerId);
+        Task<Cart?> GetCartWithItemsAsync(string customerId);
     }
 }

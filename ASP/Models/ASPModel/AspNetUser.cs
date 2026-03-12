@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ASP.Models.Domains;
+using System;
 using System.Collections.Generic;
 
 namespace ASP.Models.ASPModel
@@ -11,6 +12,9 @@ namespace ASP.Models.ASPModel
             AspNetUserLogins = new HashSet<AspNetUserLogin>();
             AspNetUserRoles = new HashSet<AspNetUserRole>();
             AspNetUserTokens = new HashSet<AspNetUserToken>();
+
+          
+
         }
 
         public string Id { get; set; } = null!;
@@ -39,5 +43,9 @@ namespace ASP.Models.ASPModel
         public virtual ICollection<AspNetUserLogin> AspNetUserLogins { get; set; }
         public virtual ICollection<AspNetUserRole> AspNetUserRoles { get; set; }
         public virtual ICollection<AspNetUserToken> AspNetUserTokens { get; set; }
+
+        
+
+
     }
 }

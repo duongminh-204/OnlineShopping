@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ASP.Models.Domains;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using System.Security.Claims;
 
 namespace ASP.Controllers.Front
 {
@@ -18,80 +18,112 @@ namespace ASP.Controllers.Front
             _cartItemRepo = cartItemRepo;
         }
 
+        private string GetUserId()
+        {
+            return User.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+
+      
         public async Task<IActionResult> Index()
         {
-            int customerId = 2;
-            var cart = await _cartRepo.GetCartWithItemsAsync(customerId);
+            var userId = GetUserId();
+
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login", "Account");
+
+            var cart = await _cartRepo.GetCartWithItemsAsync(userId);
 
             if (cart == null)
-            {
                 return RedirectToAction("Index", "Product");
-            }
 
             ViewBag.CartItemCount = cart.CartItems?.Sum(ci => ci.Quantity) ?? 0;
+
             return View("~/Views/Front/Carts/Index.cshtml", cart);
         }
-        //public async Task<IActionResult> AddToCart(int variantId)
-        //{
-        //    int customerId = 2;
-        //    var cart = await _cartRepo.GetOrCreateCartAsync(customerId);
-        //    await _cartItemRepo.AddToCartAsync(cart.CartId, variantId, 1);
-        //    await _cartRepo.SaveChangesAsync();
-        //    return RedirectToAction("Index", "Product");
-        //}
+
         [HttpPost]
         public async Task<IActionResult> AddToCart([FromBody] AddToCartModel model)
         {
-            int customerId = 2; 
+            var userId = GetUserId();
 
-            var cart = await _cartRepo.GetOrCreateCartAsync(customerId);
-            await _cartItemRepo.AddToCartAsync(cart.CartId, model.VariantId, model.Quantity);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var cart = await _cartRepo.GetOrCreateCartAsync(userId);
+
+            await _cartItemRepo.AddToCartAsync(
+                cart.CartId,
+                model.VariantId,
+                model.Quantity
+            );
+
             await _cartRepo.SaveChangesAsync();
 
-         
-            return Ok(new { success = true, message = "Đã thêm vào giỏ hàng" });
-        }
-
-        public class AddToCartModel
-        {
-            public int VariantId { get; set; }
-            public int Quantity { get; set; } = 1;
+            return Ok(new
+            {
+                success = true,
+                message = "Đã thêm vào giỏ hàng"
+            });
         }
 
        
         [HttpGet]
         public async Task<IActionResult> GetCartCount()
         {
-            int customerId = 2;
-            var cart = await _cartRepo.GetCartWithItemsAsync(customerId);
+            var userId = GetUserId();
+
+            if (string.IsNullOrEmpty(userId))
+                return Json(0);
+
+            var cart = await _cartRepo.GetCartWithItemsAsync(userId);
+
             int count = cart?.CartItems?.Sum(i => i.Quantity) ?? 0;
+
             return Json(count);
         }
+
+       
         [HttpPost]
         public async Task<IActionResult> RemoveItem([FromBody] RemoveItemModel model)
         {
-            int customerId = 2;
+            var userId = GetUserId();
 
-            var cart = await _cartRepo.GetCartWithItemsAsync(customerId);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var cart = await _cartRepo.GetCartWithItemsAsync(userId);
+
             if (cart == null || !cart.CartItems.Any())
-            {
-                return BadRequest("Giỏ hàng không tồn tại hoặc trống");
-            }
+                return BadRequest("Giỏ hàng trống");
 
-            var itemToRemove = cart.CartItems.FirstOrDefault(ci => ci.CartItemId == model.CartItemId);
-            if (itemToRemove == null)
-            {
-                return BadRequest("Không tìm thấy sản phẩm trong giỏ hàng");
-            }
+            var item = cart.CartItems
+                .FirstOrDefault(x => x.CartItemId == model.CartItemId);
 
-            _cartItemRepo.Delete(itemToRemove);
+            if (item == null)
+                return BadRequest("Không tìm thấy sản phẩm");
+
+            _cartItemRepo.Delete(item);
+
             await _cartRepo.SaveChangesAsync();
 
-            return Ok(new { success = true, message = "Đã xóa sản phẩm khỏi giỏ hàng" });
+            return Ok(new
+            {
+                success = true,
+                message = "Đã xoá sản phẩm"
+            });
         }
     }
-}
-public class RemoveItemModel
-{
-    public int CartItemId { get; set; }
+
+
+    public class AddToCartModel
+    {
+        public int VariantId { get; set; }
+
+        public int Quantity { get; set; } = 1;
+    }
+
+    public class RemoveItemModel
+    {
+        public int CartItemId { get; set; }
+    }
 }

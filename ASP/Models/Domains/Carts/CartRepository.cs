@@ -13,17 +13,17 @@ namespace ASP.Models.Domain
             _context = context;
         }
 
-        public async Task<Cart> GetOrCreateCartAsync(int customerId)
+        public async Task<Cart> GetOrCreateCartAsync(string userId)
         {
             var cart = await _context.Carts
                 .Include(c => c.CartItems)
-                .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+                .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null)
             {
                 cart = new Cart
                 {
-                    CustomerId = customerId,
+                    UserId = userId,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -33,20 +33,19 @@ namespace ASP.Models.Domain
 
             return cart;
         }
-
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Cart> GetCartWithItemsAsync(int customerId)
+        public async Task<Cart> GetCartWithItemsAsync(string userId)
         {
             return await _context.Carts
                 .Include(c => c.CartItems)
                     .ThenInclude(ci => ci.ProductVariant)
                         .ThenInclude(v => v.Product)
                             .ThenInclude(p => p.ProductImages)
-                .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+                .FirstOrDefaultAsync(c => c.UserId == userId);
         }
     }
 }

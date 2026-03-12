@@ -22,7 +22,6 @@ namespace ASP.Models.Domains
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        [ForeignKey("UserId")]
-        public User User { get; set; }
+      
     }
 }

@@ -8,7 +8,7 @@ using ASP.Models.Domains;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-
+using ASP.Models.ASPModel;
 namespace ASP.Models.ASPModel
 {
     public class ASPDbContext : IdentityDbContext<ApplicationUser, Role, string>
@@ -115,16 +115,10 @@ namespace ASP.Models.ASPModel
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Order>()
-                .HasOne(o => o.Customer)
-                .WithMany(c => c.Orders)
-                .HasForeignKey(o => o.CustomerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.User)
-                .WithMany(u => u.Orders)
-                .HasForeignKey(o => o.CreatedBy)
-                .OnDelete(DeleteBehavior.Restrict);
+    .HasOne(o => o.User)
+    .WithMany(u => u.Orders)
+    .HasForeignKey(o => o.UserId)
+    .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<OrderDetail>()
                 .HasOne(od => od.Order)
@@ -138,17 +132,12 @@ namespace ASP.Models.ASPModel
                 .HasForeignKey(od => od.VariantId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Notification>()
-                .HasOne(n => n.User)
-                .WithMany(u => u.Notifications)
-                .HasForeignKey(n => n.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Cart>()
-    .HasOne(c => c.Customer)
-    .WithMany()
-    .HasForeignKey(c => c.CustomerId)
-    .OnDelete(DeleteBehavior.Cascade);
+                .HasOne(c => c.User)
+                .WithMany(u => u.Carts)
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<CartItem>()
                 .HasOne(ci => ci.Cart)
@@ -161,6 +150,12 @@ namespace ASP.Models.ASPModel
                 .WithMany()
                 .HasForeignKey(ci => ci.VariantId)
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ShippingAddress>()
+      .HasOne(a => a.User)
+      .WithMany(u => u.ShippingAddresses)
+      .HasForeignKey(a => a.UserId)
+      .OnDelete(DeleteBehavior.Cascade);
+
         }
 
         public DbSet<Log> Logs { get; set; }
@@ -169,19 +164,18 @@ namespace ASP.Models.ASPModel
 
         public DbSet<Menu> Menus { get; set; }
 
-        public DbSet<User> ShopUsers { get; set; }
+       
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<ProductVariant> ProductVariants { get; set; }
-        public DbSet<Customer> Customers { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
 
-
+        public DbSet<ShippingAddress> ShippingAddresses { get; set; }
 
 
 

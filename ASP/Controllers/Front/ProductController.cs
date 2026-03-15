@@ -159,6 +159,60 @@ namespace ASP.Controllers.Front
                 return File(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Template_Import.xlsx");
             }
         }
+        [Authorize(Roles = "Admin")]
+        public IActionResult ExportProductsToExcel()
+        {
+            var products = _productRepository.GetAllProducts();
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Products List");
+
+                // 1. Tạo Header
+                string[] headers = { "ID", "Tên sản phẩm", "Danh mục", "Mô tả", "Tổng số lượng", "Giá (Variant đầu)", "SKU" };
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    worksheet.Cells[1, i + 1].Value = headers[i];
+                }
+
+                // Định dạng Header
+                using (var range = worksheet.Cells[1, 1, 1, headers.Length])
+                {
+                    range.Style.Font.Bold = true;
+                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.DarkBlue);
+                    range.Style.Font.Color.SetColor(System.Drawing.Color.White);
+                    range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                }
+
+                // 2. Đổ dữ liệu
+                int currentRow = 2;
+                foreach (var p in products)
+                {
+                    var firstVariant = p.ProductVariants?.FirstOrDefault();
+
+                    worksheet.Cells[currentRow, 1].Value = p.ProductId;
+                    worksheet.Cells[currentRow, 2].Value = p.ProductName;
+                    worksheet.Cells[currentRow, 3].Value = p.Category?.CategoryName ?? "N/A";
+                    worksheet.Cells[currentRow, 4].Value = p.Description;
+                    worksheet.Cells[currentRow, 5].Value = p.Quantity;
+                    worksheet.Cells[currentRow, 6].Value = firstVariant?.Price ?? 0;
+                    worksheet.Cells[currentRow, 7].Value = firstVariant?.SKU ?? "";
+
+                    // Định dạng số cho cột Giá
+                    worksheet.Cells[currentRow, 6].Style.Numberformat.Format = "#,##0";
+
+                    currentRow++;
+                }
+
+                worksheet.Cells.AutoFitColumns();
+
+                var fileContents = package.GetAsByteArray();
+                string fileName = $"Danh_Sach_San_Pham_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+
+                return File(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+        }
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateProductImage(int productId, IFormFile imageFile)

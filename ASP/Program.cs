@@ -101,6 +101,7 @@ builder.Services.AddScoped<CartItemRepositoryInterface, CartItemRepository>();
 builder.Services.AddScoped<ProductVariantRepositoryInterface, ProductVariantRepository>();
 builder.Services.AddScoped<OrderRepositoryInterface, OrderRepository>();
 builder.Services.AddScoped<OrderDetailRepositoryInterface, OrderDetailRepository>();
+builder.Services.AddScoped<CategoryRepositoryInterface, CategoryRepository>();
 //builder.Services.AddScoped<UserPolicyAuthorizationHandler>();
 
 //builder.Services.AddTransient<EmailServiceInterface, GmailSmtpService>();

@@ -80,11 +80,28 @@ namespace ASP.Models.Domains
                 // Cache ProductId to send in event
                 int productId = variant.ProductId;
 
-                _context.ProductVariants.Remove(variant);
-                await _context.SaveChangesAsync();
-                
-                // Real-time notification
-                await _hubContext.Clients.All.SendAsync("VariantDeleted", id, productId);
+                bool isReferenced = await _context.OrderDetails.AnyAsync(od => od.VariantId == id) ||
+                                    await _context.CartItems.AnyAsync(ci => ci.VariantId == id);
+
+                if (isReferenced)
+                {
+                    // Soft delete because it is referenced in old orders or cart items
+                    variant.IsActive = false;
+                    _context.ProductVariants.Update(variant);
+                    await _context.SaveChangesAsync();
+                    
+                    // Real-time notification for update
+                    await _hubContext.Clients.All.SendAsync("VariantUpdated", variant);
+                }
+                else
+                {
+                    // Safe to hard delete
+                    _context.ProductVariants.Remove(variant);
+                    await _context.SaveChangesAsync();
+                    
+                    // Real-time notification for delete
+                    await _hubContext.Clients.All.SendAsync("VariantDeleted", id, productId);
+                }
                 
                 return true;
             }

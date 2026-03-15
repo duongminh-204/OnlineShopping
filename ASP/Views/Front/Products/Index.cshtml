@@ -135,10 +135,22 @@
                         <div class="col">
                             <div class="card product-card h-100 border-0 shadow rounded-4">
                                 <div class="image-wrapper position-relative">
+
                                     <img src="@imgUrl"
                                          class="card-img-top"
                                          alt="@product.ProductName"
                                          loading="lazy">
+
+                                    @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                                    {
+                                        <label class="icon-btn edit-btn">
+                                            <i class="bi bi-pencil-square"></i>
+                                            <input type="file"
+                                                   class="d-none change-image-input"
+                                                   data-product-id="@product.ProductId"
+                                                   accept="image/*">
+                                        </label>
+                                    }
 
                                     <div class="image-overlay">
                                         <div class="overlay-buttons d-flex justify-content-center gap-3">
@@ -216,6 +228,20 @@
         </div>
     </div>
 </div>
+<style>
+    .edit-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        opacity: 0;
+        transition: 0.2s;
+        z-index: 20
+    }
+
+    .product-card:hover .edit-btn {
+        opacity: 1;
+    }
+</style>
 @section Scripts {
     <script src="~/js/Product.js" asp-append-version="true"></script>
     

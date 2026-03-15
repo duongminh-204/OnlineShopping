@@ -10,8 +10,8 @@ namespace ASP.Controllers.Front
     public class ProductController : Controller
     {
         private readonly ProductRepositoryInterface _productRepository;
-        private readonly ProductImageRepository _productImageRepository;
-        public ProductController(ProductRepositoryInterface productRepository, ProductImageRepository productImageRepository    )
+        private readonly ProductImageRepositoryInterface _productImageRepository;
+        public ProductController(ProductRepositoryInterface productRepository, ProductImageRepositoryInterface productImageRepository    )
         {
             _productRepository = productRepository;
             _productImageRepository = productImageRepository;
@@ -167,7 +167,7 @@ namespace ASP.Controllers.Front
 
          
             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/products", fileName);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", fileName);
 
             using (var stream = new FileStream(filePath, FileMode.Create))
             {

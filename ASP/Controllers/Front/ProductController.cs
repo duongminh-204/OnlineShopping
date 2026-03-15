@@ -10,10 +10,11 @@ namespace ASP.Controllers.Front
     public class ProductController : Controller
     {
         private readonly ProductRepositoryInterface _productRepository;
-
-        public ProductController(ProductRepositoryInterface productRepository)
+        private readonly ProductImageRepository _productImageRepository;
+        public ProductController(ProductRepositoryInterface productRepository, ProductImageRepository productImageRepository    )
         {
             _productRepository = productRepository;
+            _productImageRepository = productImageRepository;
         }
 
         public IActionResult Index(int? category = null)
@@ -157,6 +158,34 @@ namespace ASP.Controllers.Front
                 var fileContents = package.GetAsByteArray();
                 return File(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Template_Import.xlsx");
             }
+        }
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateProductImage(int productId, IFormFile imageFile)
+        {
+            if (imageFile == null || imageFile.Length == 0) return BadRequest();
+
+         
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/products", fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await imageFile.CopyToAsync(stream);
+            }
+
+           
+            var newImage = new ProductImage
+            {
+                ProductId = productId,
+                ImageUrl = "/images/" + fileName,
+                IsMain = false 
+            };
+
+          
+            await _productImageRepository.AddImageAsync(newImage);
+
+            return Json(new { success = true, newImageUrl = newImage.ImageUrl });
         }
     }
 }

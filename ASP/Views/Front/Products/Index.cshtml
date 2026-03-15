@@ -73,6 +73,48 @@
 
         <!-- Product grid -->
         <div class="col-lg-9">
+            @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                <div class="col-12 mb-5">
+                    <div class="admin-import-wrapper p-4 border-0 shadow-sm rounded-4" style="background-color: #f8f9fa; border: 1px dashed #ced4da !important;">
+                        <div class="row align-items-center">
+                            <div class="col-md-5">
+                               
+                                <p class="text-muted small mb-md-0">Import sản phẩm , DownLoad TeamPlate Import <a href="@Url.Action("DownloadTemplate", "Product")" class="text-primary fw-bold text-decoration-none"></a></p>
+                            </div>
+                            <div class="col-md-7 text-end">
+                                <form asp-action="ImportProductsFromFile" asp-controller="Product" method="post" enctype="multipart/form-data">
+                                    <div class="input-group">
+                                        <input type="file" name="file" class="form-control border-dark-subtle shadow-none" accept=".xlsx, .xls" required>
+                                        <button class="btn btn-dark px-4 fw-medium" type="submit" style="background-color: #000; border-color: #000;">
+                                            <i class="bi bi-file-earmark-arrow-up me-2"></i>Import
+                                        </button>
+                                        <a href="@Url.Action("DownloadTemplate", "Product")" class="btn btn-outline-dark px-3" title="Tải file mẫu">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* Hiển thị thông báo kết quả *@
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
             @if (!Model.Any())
             {
                 <div class="alert alert-info text-center py-5 rounded-4 shadow-sm">

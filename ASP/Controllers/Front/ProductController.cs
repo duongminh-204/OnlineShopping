@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using ASP.Models.Domains;
+﻿using ASP.Models.Domains;
 using ASP.Models.ViewModels;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore; 
-
+using System.Threading.Tasks;
+using OfficeOpenXml;
+using Microsoft.AspNetCore.Authorization;
 namespace ASP.Controllers.Front
 {
     public class ProductController : Controller
@@ -52,6 +53,110 @@ namespace ASP.Controllers.Front
            
 
             return View("~/Views/Front/Products/ProductDetail.cshtml",viewModel);
+        }
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ImportProductsFromFile(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                TempData["Error"] = "Vui lòng chọn file Excel!";
+                return RedirectToAction("Index");
+            }
+
+            var list = new List<Product>();
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+              
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+                        var rowCount = worksheet.Dimension?.Rows ?? 0;
+
+                        if (rowCount < 2)
+                        {
+                            TempData["Error"] = "File Excel không có dữ liệu hoặc sai định dạng!";
+                            return RedirectToAction("Index");
+                        }
+
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                         
+                            var productName = worksheet.Cells[row, 1].Value?.ToString();
+                            if (string.IsNullOrWhiteSpace(productName)) continue;
+
+                            var product = new Product
+                            {
+                                ProductName = productName,
+                                CategoryId = int.Parse(worksheet.Cells[row, 2].Value?.ToString() ?? "1"),
+                                Description = worksheet.Cells[row, 3].Value?.ToString() ?? "",
+                                Quantity = int.Parse(worksheet.Cells[row, 4].Value?.ToString() ?? "0"),
+                                IsActive = true,
+                                ProductVariants = new List<ProductVariant>
+                        {
+                            new ProductVariant
+                            {
+                                SKU = "SKU-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
+                                Price = decimal.Parse(worksheet.Cells[row, 5].Value?.ToString() ?? "0"),
+                                QuantityVariants = int.Parse(worksheet.Cells[row, 4].Value?.ToString() ?? "0"),
+                                IsActive = true
+                            }
+                        }
+                            };
+                            list.Add(product);
+                        }
+                    }
+                }
+
+                if (list.Any())
+                {
+                    await _productRepository.ImportProductsAsync(list);
+                    TempData["Success"] = $"Đã nhập thành công {list.Count} sản phẩm!";
+                }
+                else
+                {
+                    TempData["Error"] = "Không tìm thấy dữ liệu hợp lệ trong file!";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra khi xử lý file: " + ex.Message;
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [Authorize(Roles = "Admin")]
+        public IActionResult DownloadTemplate()
+        {
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Template");
+
+                // Header
+                worksheet.Cells[1, 1].Value = "ProductName";
+                worksheet.Cells[1, 2].Value = "CategoryID";
+                worksheet.Cells[1, 3].Value = "Description";
+                worksheet.Cells[1, 4].Value = "Quantity";
+                worksheet.Cells[1, 5].Value = "Price";
+
+                // Định dạng Header đen trắng
+                using (var range = worksheet.Cells[1, 1, 1, 5])
+                {
+                    range.Style.Font.Bold = true;
+                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Black);
+                    range.Style.Font.Color.SetColor(System.Drawing.Color.White);
+                }
+
+                worksheet.Cells.AutoFitColumns();
+                var fileContents = package.GetAsByteArray();
+                return File(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Template_Import.xlsx");
+            }
         }
     }
 }

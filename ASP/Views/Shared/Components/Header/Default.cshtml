@@ -258,19 +258,4 @@
     </div>
 
 </div>
-<script>
-    function openProfile(){
-
-        fetch('/Account/MyProfile')
-        .then(res => res.text())
-        .then(html => {
-
-            document.getElementById("profileContent").innerHTML = html;
-
-            var modal = new bootstrap.Modal(document.getElementById('profileModal'));
-            modal.show();
-
-        });
-
-    }
-</script>
+<script src="~/js/Profile.js"></script>

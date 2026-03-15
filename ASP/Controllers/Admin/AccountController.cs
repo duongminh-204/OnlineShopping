@@ -247,5 +247,86 @@ namespace ASP.Controllers.Admin
 
             return PartialView("~/Views/Shared/Components/Header/_UserProfile.cshtml", currentUser);
         }
+   
+        [HttpGet]
+        [Route("Account/EditProfile")]
+        public async Task<IActionResult> EditProfile()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Unauthorized();
+            }
+
+            return PartialView("~/Views/Shared/Components/Header/_EditUserProfile.cshtml", currentUser);
+        }
+
+       
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Route("Account/UpdateProfile")]
+        public async Task<IActionResult> UpdateProfile(ApplicationUser model, IFormFile Avatar, string rmavatar = null)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Unauthorized();
+            }
+
+       
+            currentUser.FullName = model.FullName?.Trim();
+            currentUser.PhoneNumber = model.PhoneNumber?.Trim();
+
+           
+            string newAvatarName = null;
+            if (Avatar != null && Avatar.Length > 0)
+            {
+               
+                if (!string.IsNullOrEmpty(currentUser.Avatar))
+                {
+                    var oldPath = Path.Combine(photosPath, currentUser.Avatar);
+                    if (System.IO.File.Exists(oldPath))
+                    {
+                        System.IO.File.Delete(oldPath);
+                    }
+                }
+
+               
+                newAvatarName = "avatar_" + DateTime.Now.Ticks + Path.GetExtension(Avatar.FileName);
+                var filePath = Path.Combine(photosPath, newAvatarName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await Avatar.CopyToAsync(stream);
+                }
+
+                currentUser.Avatar = newAvatarName;
+            }
+            else if (rmavatar == "remove" && !string.IsNullOrEmpty(currentUser.Avatar))
+            {
+              
+                var oldPath = Path.Combine(photosPath, currentUser.Avatar);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    System.IO.File.Delete(oldPath);
+                }
+                currentUser.Avatar = null;
+            }
+
+            currentUser.UpdatedDate = DateTime.Now;
+
+            var result = await _userManager.UpdateAsync(currentUser);
+            if (!result.Succeeded)
+            {
+              
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return PartialView("~/Views/Shared/Components/Header/_EditUserProfile.cshtml", model);
+            }
+
+ 
+            return PartialView("~/Views/Shared/Components/Header/_UserProfile.cshtml", currentUser);
+        }
     }
 }

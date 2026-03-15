@@ -16,6 +16,7 @@
                     <a class="btn btn-success"
                        asp-action="Create"
                        asp-route-filter="@Model.RouteValue["filter"]"
+                       asp-route-categoryId="@Model.RouteValue["categoryId"]"
                        asp-route-page="@Model.PageIndex">
                         <i class="fas fa-plus-square"></i> Thêm mới
                     </a>
@@ -32,7 +33,7 @@
 
     <section class="content">
         <div class="container-fluid">
-            <form method="get">
+            <form method="get" asp-controller="Product" asp-action="Index">
                 <fieldset>
                     <legend>Bộ lọc</legend>
                     <div class="row">
@@ -43,10 +44,29 @@
                                    value="@Model.RouteValue["filter"]"
                                    placeholder="Search product..." />
                         </div>
-                        <div class="col-md-2" style="margin-top:30px">
+
+                        <div class="col-md-4">
+                            <label>Category</label>
+                            <select class="form-control" name="categoryId">
+                                <option value="">All</option>
+
+                                @foreach (var c in ViewBag.Categories)
+                                {
+                                    <option value="@c.CategoryId"
+                                            selected="@(ViewBag.CategoryId == c.CategoryId)">
+                                        @c.CategoryName
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-3" style="margin-top:30px">
                             <button class="btn btn-info">
                                 <i class="fas fa-search"></i> Tìm kiếm
                             </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-eraser"></i> Clear
+                            </a>
                         </div>
                     </div>
                 </fieldset>
@@ -103,6 +123,7 @@
                                 <a asp-action="Edit"
                                    asp-route-id="@item.ProductId"
                                    asp-route-filter="@Model.RouteValue["filter"]"
+                                   asp-route-categoryId="@Model.RouteValue["categoryId"]"
                                    asp-route-page="@Model.PageIndex"
                                    class="badge badge-primary">
                                     <i class="fas fa-edit"></i> Edit

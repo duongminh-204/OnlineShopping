@@ -16,7 +16,7 @@ namespace ASP.Controllers.Admin
         }
 
         [Route("")]
-        public IActionResult Index(string? filter, int page = 1)
+        public IActionResult Index(string? filter, int? categoryId, int page = 1)
         {
             var query = _context.Products
                 .Include(x => x.Category)
@@ -28,21 +28,32 @@ namespace ASP.Controllers.Admin
                 query = query.Where(x => x.ProductName.Contains(filter));
             }
 
+            if (categoryId != null && categoryId > 0)
+            {
+                query = query.Where(x => x.CategoryId == categoryId);
+            }
+
             var model = PagingList.Create(query, 10, page);
 
-            model.RouteValue = new RouteValueDictionary {
-                { "filter", filter }
+            model.RouteValue = new RouteValueDictionary 
+            {
+                { "filter", filter },
+                { "categoryId", categoryId }
             };
+
+            ViewBag.Categories = _context.Categories.ToList();
+            ViewBag.CategoryId = categoryId;
 
             return View("~/Views/Admin/Product/Index.cshtml", model);
         }
 
         [HttpGet]
         [Route("create")]
-        public IActionResult Create(string? filter, int page = 1)
+        public IActionResult Create(string? filter, int? categoryId, int page = 1)
         {
             ViewBag.Categories = _context.Categories.ToList();
             ViewBag.Filter = filter;
+            ViewBag.CategoryId = categoryId;
             ViewBag.Page = page;
 
 
@@ -51,7 +62,7 @@ namespace ASP.Controllers.Admin
 
         [HttpPost]
         [Route("create")]
-        public IActionResult Create(Product product, string? filter, int page = 1)
+        public IActionResult Create(Product product, string? filter, int? categoryId, int page = 1)
         {
             // bỏ validate navigation
             ModelState.Remove("Category");
@@ -66,6 +77,7 @@ namespace ASP.Controllers.Admin
                 return RedirectToAction("Index", new
                 {
                     filter = filter,
+                    categoryId = categoryId,
                     page = page
                 });
             }
@@ -73,12 +85,13 @@ namespace ASP.Controllers.Admin
             ViewBag.Categories = _context.Categories.ToList();
             ViewBag.Filter = filter;
             ViewBag.Page = page;
+            ViewBag.CategoryId = categoryId;
             return View("~/Views/Admin/Product/Create.cshtml", product);
         }
 
-
+        [HttpGet]
         [Route("edit/{id}")]
-        public IActionResult Edit(int id, string? filter, int page = 1)
+        public IActionResult Edit(int id, string? filter, int? categoryId, int page = 1)
         {
             var product = _context.Products
                 .FirstOrDefault(x => x.ProductId == id);
@@ -90,6 +103,7 @@ namespace ASP.Controllers.Admin
 
             ViewBag.Categories = _context.Categories.ToList();
             ViewBag.Filter = filter;
+            ViewBag.CategoryId = categoryId;
             ViewBag.Page = page;
 
             return View("~/Views/Admin/Product/Edit.cshtml", product);
@@ -97,7 +111,7 @@ namespace ASP.Controllers.Admin
 
         [HttpPost]
         [Route("edit/{id}")]
-        public IActionResult Edit(int id, Product model, string? filter, int page = 1)
+        public IActionResult Edit(int id, Product model, string? filter, int? categoryId, int page = 1)
         {
             //System.Diagnostics.Debug.WriteLine("POST RUNNING");
 
@@ -108,6 +122,7 @@ namespace ASP.Controllers.Admin
             {
                 ViewBag.Categories = _context.Categories.ToList();
                 ViewBag.Filter = filter;
+                ViewBag.CategoryId = categoryId;
                 ViewBag.Page = page;
                 return View("~/Views/Admin/Product/Edit.cshtml", model);
             }
@@ -125,7 +140,12 @@ namespace ASP.Controllers.Admin
 
             _context.SaveChanges();
 
-            return RedirectToAction("Index", new { filter = filter, page = page });
+            return RedirectToAction("Index", new
+            {
+                filter = filter,
+                categoryId = categoryId,
+                page = page
+            });
         }
 
 

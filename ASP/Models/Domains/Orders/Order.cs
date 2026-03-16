@@ -1,4 +1,4 @@
-﻿using ASP.Models.Domains;
+﻿using ASP.Models.Admin.Accounts;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -10,10 +10,9 @@ namespace ASP.Models.Domains
         public int OrderId { get; set; }
 
         [Required]
-        public int CustomerId { get; set; }
+        public string UserId { get; set; }   
 
-        [Required]
-        public int CreatedBy { get; set; }
+        public string CreatedBy { get; set; }
 
         public DateTime OrderDate { get; set; } = DateTime.Now;
 
@@ -22,14 +21,14 @@ namespace ASP.Models.Domains
 
         [Required]
         [StringLength(20)]
-        public string Status { get; set; }   // Completed, Cancelled
+        public string Status { get; set; }
 
         // Navigation
-        [ForeignKey("CustomerId")]
-        public Customer Customer { get; set; }
-
-        [ForeignKey("CreatedBy")]
-        public User User { get; set; }
+        [ForeignKey("UserId")]
+        public ApplicationUser User { get; set; }
+      
+        [ForeignKey("ShippingAddressId")]
+        public ShippingAddress ShippingAddress { get; set; }
 
         public ICollection<OrderDetail> OrderDetails { get; set; }
     }

@@ -1,145 +1,251 @@
 ﻿@using ASP.Models.Domains
 @using ASP.Controllers.Front
 @model IEnumerable<Product>
+@inject CategoryRepositoryInterface CategoryRepo
 
 @{
-    ViewData["Title"] = "Danh sách Sản phẩm - Fashion Shop";
+    ViewData["Title"] = "Sản phẩm - Fashion Shop";
     Layout = "../Shared/Layout/Front/_Layout";
+
+    var categories = CategoryRepo.GetAllCategories();
+    var allProductsUrl = Url.Action("Index", "Product");
 }
 
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="fw-bold text-dark">
-                <i class="bi bi-bag-heart-fill text-danger"></i> Danh sách Sản phẩm
-            </h1>
-            <p class="text-muted mb-0">
-                Quản lý toàn bộ sản phẩm thời trang của cửa hàng
-                <strong>(@Model.Count() sản phẩm)</strong>
-            </p>
-        </div>
-        <a asp-action="Create" class="btn btn-danger btn-lg shadow">
-            <i class="bi bi-plus-lg"></i> Thêm sản phẩm mới
-        </a>
+<link rel="stylesheet" href="~/css/Product.css" asp-append-version="true" />
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
+<div class="container py-5" style="font-family: 'Roboto', sans-serif;">
+    <h1 class="text-center mb-5 d-lg-none animate__animated animate__fadeIn">
+        <i class="bi bi-bag-heart-fill text-danger me-2"></i>Sản phẩm thời trang
+    </h1>
+
+    <!-- Mobile filter button -->
+    <div class="d-lg-none mb-4 text-center">
+        <button class="btn btn-outline-primary btn-lg px-5"
+                type="button"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#categorySidebar">
+            <i class="bi bi-filter-left me-2"></i>Lọc theo danh mục
+        </button>
     </div>
 
-    <!-- Grid sản phẩm -->
-    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
-        @foreach (var p in Model)
-        {
-            var mainImage = p.ProductImages?.FirstOrDefault(x => x.IsMain);
-            var imageUrl = mainImage?.ImageUrl
-            ?? p.ProductImages?.FirstOrDefault()?.ImageUrl
-            ?? "/images/no-image.jpg";
+    <div class="row g-4">
+        <!-- Sidebar (shared logic for mobile & desktop) -->
+        <div class="col-lg-3">
+            <!-- Mobile offcanvas -->
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="categorySidebar">
+                <div class="offcanvas-header border-bottom bg-dark text-white">
+                    <h5 class="offcanvas-title">
+                        <i class="bi bi-tags me-2"></i>Danh mục
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+                </div>
+                <div class="offcanvas-body px-0">
+                    @await Html.PartialAsync(
+                    "~/Views/Front/Products/_CategoryList.cshtml",
+                                        categories,
+                                        new ViewDataDictionary(ViewData)
+                                        {
+                                            ["AllUrl"] = allProductsUrl
+                                        }
+                                        )
+                </div>
+            </div>
 
-            <div class="col">
-                <div class="card h-100 shadow-sm border-0 product-card hover-shadow">
-                    <!-- Ảnh sản phẩm -->
-                    <div class="position-relative">
-                        <img src="@imageUrl"
-                             class="card-img-top"
-                             alt="@p.ProductName"
-                             style="height: 220px; object-fit: cover;" />
-                        <!-- Badge trạng thái chồng lên ảnh -->
-                        <span class="position-absolute top-0 end-0 m-3 badge @(p.IsActive ? "bg-success" : "bg-secondary") px-3 py-2 fs-6">
-                            @(p.IsActive ? "Đang bán" : "Ngừng bán")
-                        </span>
+            <!-- Desktop sticky sidebar -->
+            <div class="d-none d-lg-block position-sticky top-80">
+                <div class="card shadow-sm rounded-4 border-0">
+                    <div class="card-header bg-dark text-white">
+                        <i class="bi bi-tags me-2"></i>Danh mục
                     </div>
+                    @await Html.PartialAsync(
+                                        "~/Views/Front/Products/_CategoryList.cshtml",
+                                        categories,
+                                        new ViewDataDictionary(ViewData)
+                                        {
+                                            ["AllUrl"] = allProductsUrl
+                                        }
+                                        )
+                </div>
+            </div>
+        </div>
 
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title fw-bold mb-2">@p.ProductName</h5>
-
-                        <div class="mb-2">
-                            <span class="badge bg-primary">@ProductController.GetCategoryName(p.CategoryId)</span>
-                        </div>
-
-                        <!-- Tồn kho -->
-                        <p class="mb-2">
-                            Tồn kho:
-                            <span class="fw-bold @(p.Quantity < 20 ? "text-danger" : "text-success")">
-                                @p.Quantity
-                            </span>
-                        </p>
-
-                        <!-- Size & Màu -->
-                        @* <div class="d-flex justify-content-between mb-3">
-                            <div>
-                                Size: <span class="badge bg-info">@(string.IsNullOrEmpty(p.Size) ? "-" : p.Size)</span>
+        <!-- Product grid -->
+        <div class="col-lg-9">
+            @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                <div class="col-12 mb-5">
+                    <div class="admin-import-wrapper p-4 border-0 shadow-sm rounded-4" style="background-color: #f8f9fa; border: 1px dashed #ced4da !important;">
+                        <div class="row align-items-center">
+                            <div class="col-md-5">
+                               
+                                <p class="text-muted small mb-md-0">Import sản phẩm , DownLoad TeamPlate Import <a href="@Url.Action("DownloadTemplate", "Product")" class="text-primary fw-bold text-decoration-none"></a></p>
                             </div>
-                            <div class="d-flex align-items-center gap-2">
-                                Màu:
-                                <div style="width: 24px; height: 24px; border-radius: 50%;
-                                                background-color: @ProductController.GetColorHex(p.Color);
-                                                border: 2px solid #fff; box-shadow: 0 0 5px rgba(0,0,0,0.2);">
-                                </div>
-                                <span>@(string.IsNullOrEmpty(p.Color) ? "-" : p.Color)</span>
+                            <div class="col-md-7 text-end">
+                                <form asp-action="ImportProductsFromFile" asp-controller="Product" method="post" enctype="multipart/form-data">
+                                    <div class="input-group">
+                                        <input type="file" name="file" class="form-control border-dark-subtle shadow-none" accept=".xlsx, .xls" required>
+                                        <button class="btn btn-dark px-4 fw-medium" type="submit" style="background-color: #000; border-color: #000;">
+                                            <i class="bi bi-file-earmark-arrow-up me-2"></i>Import
+                                        </button>
+                                        <a href="@Url.Action("DownloadTemplate", "Product")" class="btn btn-outline-dark px-3" title="Tải file mẫu">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                        <a href="@Url.Action("ExportProductsToExcel", "Product")" class="btn btn-success px-3" title="Xuất dữ liệu Excel">
+                                            <i class="bi bi-download me-1"></i> Export
+                                        </a>
+                                    </div>
+                                </form>
                             </div>
-                        </div> *@
-
-                        <!-- Mô tả ngắn (truncate) -->
-                        <p class="card-text text-muted small text-truncate mb-3"
-                           style="max-height: 60px; overflow: hidden;"
-                           title="@p.Description">
-                            @(string.IsNullOrEmpty(p.Description) ? "Không có mô tả" : p.Description)
-                        </p>
-
-                        <!-- Nút hành động -->
-                        <div class="mt-auto d-flex gap-2">
-                            <a asp-action="Details" asp-route-id="@p.ProductId"
-                               class="btn btn-outline-primary btn-sm flex-fill">
-                                <i class="bi bi-eye"></i> Chi tiết
-                            </a>
-                            <a asp-action="Edit" asp-route-id="@p.ProductId"
-                               class="btn btn-outline-warning btn-sm">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-                            <a asp-action="Delete" asp-route-id="@p.ProductId"
-                               class="btn btn-outline-danger btn-sm"
-                               onclick="return confirm('Bạn chắc chắn muốn xóa sản phẩm này?')">
-                                <i class="bi bi-trash"></i>
-                            </a>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
-    </div>
-
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info text-center mt-5 py-5">
-            <i class="bi bi-bag-x fs-1"></i>
-            <h4 class="mt-3">Chưa có sản phẩm nào</h4>
-            <p>Hãy thêm sản phẩm mới để bắt đầu kinh doanh!</p>
-            <a asp-action="Create" class="btn btn-danger mt-3">Thêm sản phẩm ngay</a>
-        </div>
-    }
-</div>
-
-@section Scripts {
- 
-    <style>
-        .product-card {
-            transition: all 0.3s ease;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-            .product-card:hover {
-                transform: translateY(-8px);
-                box-shadow: 0 12px 30px rgba(0,0,0,0.15) !important;
             }
 
-        .card-img-top {
-            transition: transform 0.4s ease;
-        }
+            @* Hiển thị thông báo kết quả *@
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info text-center py-5 rounded-4 shadow-sm">
+                    <i class="bi bi-bag-x fs-1 mb-3 d-block"></i>
+                    <h4>Chưa có sản phẩm nào</h4>
+                </div>
+            }
+            else
+            {
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4 product-grid">
+                    @foreach (var product in Model)
+                    {
+                        var price = product.ProductVariants?.FirstOrDefault()?.Price ?? 0m;
+                        var mainImg = product.ProductImages?.FirstOrDefault(x => x.IsMain)
+                        ?? product.ProductImages?.FirstOrDefault();
+                        var imgUrl = mainImg?.ImageUrl ?? "/images/no-image.jpg";
 
-        .product-card:hover .card-img-top {
-            transform: scale(1.08);
-        }
+                        <div class="col">
+                            <div class="card product-card h-100 border-0 shadow rounded-4">
+                                <div class="image-wrapper position-relative">
 
-        .hover-shadow:hover {
-            box-shadow: 0 10px 25px rgba(220,53,69,0.2) !important;
-        }
-    </style>
+                                    <img src="@imgUrl"
+                                         class="card-img-top"
+                                         alt="@product.ProductName"
+                                         loading="lazy">
+
+                                    @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                                    {
+                                        <label class="icon-btn edit-btn">
+                                            <i class="bi bi-pencil-square"></i>
+                                            <input type="file"
+                                                   class="d-none change-image-input"
+                                                   data-product-id="@product.ProductId"
+                                                   accept="image/*">
+                                        </label>
+                                    }
+
+                                    <div class="image-overlay">
+                                        <div class="overlay-buttons d-flex justify-content-center gap-3">
+                                            <a asp-action="Details" asp-controller="Product" asp-route-id="@product.ProductId"
+                                               class="icon-btn view-btn" title="Xem chi tiết">
+                                                <i class="bi bi-search"></i>
+                                            </a>
+
+                                            <button type="button"
+                                                    class="icon-btn cart-btn add-to-cart-btn"
+                                                    data-variant-id="@(product.ProductVariants?.FirstOrDefault()?.VariantId ?? 0)"
+                                                    data-product-name="@product.ProductName"
+                                                    data-price="@(product.ProductVariants?.FirstOrDefault()?.Price ?? 0m)"
+                                                    data-image="@(mainImg?.ImageUrl ?? "/images/no-image.jpg")"
+                                                    title="Thêm vào giỏ">
+                                                <i class="bi bi-bag"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-body text-center">
+                                    <h5 class="card-title product-title mb-2">@product.ProductName</h5>
+                                    <p class="product-price mb-0">
+                                        @if (price > 0)
+                                        {
+                                            <span>@price.ToString("N0")</span>
+
+                                            <small> đ</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Liên hệ</span>
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Success modal -->
+    <div class="modal fade" id="addToCartSuccessModal" tabindex="-1" aria-labelledby="addToCartModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 shadow">
+                <div class="modal-header bg-success text-white rounded-top-4">
+                    <h5 class="modal-title" id="addToCartModalLabel">
+                        <i class="bi bi-check-circle-fill me-2"></i>Thêm vào giỏ hàng thành công!
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <img id="modalProductImage" src="" alt="Sản phẩm" class="img-fluid rounded mb-3" style="max-height: 180px; object-fit: contain;">
+                    <h5 id="modalProductName" class="mb-3"></h5>
+                    <p class="mb-2">
+                        Size: <strong id="modalSize">-</strong>
+                        × <strong id="modalQuantity">1</strong>
+                    </p>
+                    <p class="text-danger fw-bold fs-5 mb-0">
+                        <span id="modalPrice">0</span> đ
+                    </p>
+                </div>
+                <div class="modal-footer justify-content-center border-0 pb-4">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                        Tiếp tục mua sắm
+                    </button>
+                    <a href="@Url.Action("Index", "Cart")" class="btn btn-primary px-4">
+                        <i class="bi bi-cart-check me-2"></i>Xem giỏ hàng
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .edit-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        opacity: 0;
+        transition: 0.2s;
+        z-index: 20
+    }
+
+    .product-card:hover .edit-btn {
+        opacity: 1;
+    }
+</style>
+@section Scripts {
+    <script src="~/js/Product.js" asp-append-version="true"></script>
+    
 }

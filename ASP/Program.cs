@@ -7,6 +7,8 @@ using ASP.Models.Admin.Menus;
 using ASP.Models.Admin.Roles;
 using ASP.Models.Admin.ThemeOptions;
 using ASP.Models.ASPModel;
+using ASP.Models.Domain;
+using ASP.Models.Domains;
 using ASP.Policies;
 using ASP.SeedData;
 using Microsoft.AspNetCore.Authorization;
@@ -86,7 +88,7 @@ builder.Services.AddPaging(options =>
 #endregion
 #region dependency injection 
 builder.Services.AddScoped<BaseController>();
-//backend  
+//Register repositories Dependency Injection    
 builder.Services.AddTransient<LogRepositoryInterface, LogRepository>();
 builder.Services.AddScoped<AccountRepositoryInterface, AccountRepository>();
 builder.Services.AddScoped<RoleRepositoryInterface, RoleRepository>();
@@ -94,6 +96,12 @@ builder.Services.AddScoped<ThemeOptionRepositoryInterface, ThemeOptionRepository
 builder.Services.AddScoped<AuthRepositoryInterface, AuthRepository>();
 builder.Services.AddScoped<MenuRepositoryInterface, MenuRepository>();
 builder.Services.AddScoped<ProductRepositoryInterface, ProductRepository>();
+builder.Services.AddScoped<CategoryRepositoryInterface, CategoryRepository>();
+builder.Services.AddScoped<CartRepositoyInterface, CartRepository>();
+builder.Services.AddScoped<CartItemRepositoryInterface, CartItemRepository>();
+builder.Services.AddScoped<ProductImageRepositoryInterface, ProductImageRepository>();
+//builder.Services.AddScoped<UserPolicyAuthorizationHandler>();
+
 //builder.Services.AddTransient<EmailServiceInterface, GmailSmtpService>();
 // frontend
 //policies

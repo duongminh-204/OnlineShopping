@@ -18,6 +18,7 @@ using Microsoft.Extensions.Options;
 using OfficeOpenXml;
 using ReflectionIT.Mvc.Paging;
 using Serilog;
+using ASP.Models.Domains;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,7 +93,7 @@ builder.Services.AddScoped<RoleRepositoryInterface, RoleRepository>();
 builder.Services.AddScoped<ThemeOptionRepositoryInterface, ThemeOptionRepository>();
 builder.Services.AddScoped<AuthRepositoryInterface, AuthRepository>();
 builder.Services.AddScoped<MenuRepositoryInterface, MenuRepository>();
-
+builder.Services.AddScoped<ProductRepositoryInterface, ProductRepository>();
 //builder.Services.AddTransient<EmailServiceInterface, GmailSmtpService>();
 // frontend
 //policies

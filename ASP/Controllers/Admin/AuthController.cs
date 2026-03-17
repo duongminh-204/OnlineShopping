@@ -323,7 +323,7 @@ namespace ASP.Controllers.Admin
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
-            return RedirectToAction("Login", "Auth");
+            return RedirectToAction("Index", "Home");
         }
         [HttpGet]
         [Route("Register")]

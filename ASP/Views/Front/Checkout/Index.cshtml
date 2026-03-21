@@ -2,6 +2,7 @@
     ViewData["Title"] = "Thông tin giao hàng";
     Layout = "~/Views/Shared/Layout/Front/_Layout.cshtml";
 }
+@model CheckoutViewModel
 
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
@@ -128,6 +129,10 @@
         .btn-complete-order:hover {
             background: #222;
         }
+
+    .p-0 {
+        padding: 15px !important
+    }
 </style>
 
 <div class="checkout-container">
@@ -137,7 +142,7 @@
         Giỏ hàng <span class="mx-2">›</span>
         <strong>Thông tin giao hàng</strong>
     </nav>
-
+    
     <div class="row g-5">
         <!-- Bên trái: Thông tin giao hàng -->
         <div class="col-lg-7">
@@ -146,8 +151,7 @@
                 <div class="d-flex align-items-center">
                     <i class="bi bi-person-circle fs-3 me-3 text-primary"></i>
                     <div>
-                        <h5 class="mb-0">Dương Minh</h5>
-                        <small class="text-muted">minhduongqh0311@gmail.com</small>
+                        <h5 class="mb-0">@Model.user?.FullName</h5>
                     </div>
                     <a href="#" class="ms-auto text-danger small">Đăng xuất</a>
                 </div>
@@ -159,35 +163,33 @@
                 <div class="mb-4">
                     <label class="form-label">Địa chỉ</label>
                     <div style="display: flex">
-                        <input type="text" class="form-control form-control-lg" style="margin-right: 5px;" placeholder="Nhập địa chỉ chi tiết..." />
-                        <button type="submit">Thay đổi</button>
+                        <input type="text" id="address" readonly class="form-control form-control-lg" style="margin-right: 5px;" placeholder="Nhập địa chỉ chi tiết..." />
+                        <button type="button"
+                                class="btn btn-outline-primary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#addressModal">
+                            Thay đổi
+                        </button>
                     </div>
-                    
+
                 </div>
 
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <label class="form-label">Tỉnh / Thành phố</label>
-                        <select class="form-select form-select-lg">
-                            <option selected>Chọn tỉnh / thành</option>
-                            <option>Hà Nội</option>
-                            <option>TP. Hồ Chí Minh</option>
-                            <option>Đà Nẵng</option>
-                            <!-- Thêm các tỉnh khác khi cần -->
-                        </select>
+                        <input type="text" id="city" readonly class="form-control form-control-lg">
+
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Quận / Huyện</label>
-                        <select class="form-select form-select-lg">
-                            <option selected>Chọn quận / huyện</option>
-                            <!-- Load động sau -->
-                        </select>
+                        <input type="text" id="ward" readonly class="form-control form-control-lg">
+
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label">Số điện thoại</label>
-                    <input type="tel" class="form-control form-control-lg" placeholder="Ví dụ: 0987654321" />
+                    <input type="tel" id="tel" readonly class="form-control form-control-lg" placeholder="Ví dụ: 0987654321" />
                 </div>
 
                 <div class="mb-5">
@@ -241,13 +243,14 @@
                 <h2 class="section-title">Đơn hàng của bạn (@Model.CartItems.Count sản phẩm)</h2>
 
                 @using System.Linq
+                @using ASP.Models.ViewModels
                 @foreach (var item in Model.CartItems)
                 {
                     <div class="product-item d-flex align-items-center mb-3">
                         <div class="position-relative me-3">
                             @{
                                 // Ép kiểu sang IEnumerable để LINQ hoạt động ổn định trên HashSet
-                                var images = item.ProductVariant?.Product?.ProductImages as IEnumerable<ASP.Models.Domains.ProductImage>;
+                                var images = item.ProductVariant?.Product?.ProductImages;
                                 // Lấy ảnh đầu tiên an toàn
                                 var firstImageObj = images?.FirstOrDefault();
                                 var fileName = firstImageObj?.ImageUrl;
@@ -318,6 +321,63 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content address-popup">
+
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title" id="addressModalLabel">Địa Chỉ Của Tôi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-0">
+                <form id="addressForm">
+                    @foreach (var add in Model.Addresses)
+                    {
+                        <label class="address-item p-3 d-block border-bottom">
+                            <div class="d-flex align-items-start">
+                                <input type="radio"
+                                       name="address"
+                                       class="form-check-input me-3 mt-1"
+                                       value="@add.AddressId"
+                                       data-city="@add.City"
+                                       data-ward="@add.Ward"
+                                       data-district="@add.District"
+                                       data-address="@add.AddressLine"
+                                       data-phone="@add.User.PhoneNumber">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>@add.FullName <span class="text-muted fw-normal ms-2">@add.Phone</span></strong>
+                                        <a href="#" class="text-primary text-decoration-none small">Cập nhật</a>
+                                    </div>
+                                    <div class="text-muted small mt-1">
+                                        @add.AddressLine, @add.District, @add.Ward, @add.City
+                                    </div>
+                                    @if (add.IsDefault)
+                                    {
+                                        <span class="badge border border-danger text-danger mt-1 fw-normal">Mặc định</span>
+                                    }
+                                </div>
+                            </div>
+                        </label>
+                    }
+
+
+
+
+
+                </form>
+            </div>
+
+            <div class="modal-footer border-top-0 d-flex justify-content-end p-3">
+                <button type="button" class="btn btn-orange d-flex align-items-center">
+                    <span class="fs-4 me-2 lh-1">+</span> Thêm Địa Chỉ Mới
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @section Scripts {
     <script>
@@ -327,6 +387,27 @@
                 document.querySelectorAll('.payment-method').forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
             });
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+
+            document.querySelectorAll('input[name="address"]').forEach((radio) => {
+                radio.addEventListener('change', function () {
+                    if (this.checked) {
+                        console.log("ID:", this.value);
+                        console.log(this.dataset);
+
+                        document.getElementById("city").value = this.dataset.city;
+                        document.getElementById("ward").value = this.dataset.district;
+                        document.getElementById("address").value = this.dataset.address;
+                        document.getElementById("tel").value = this.dataset.phone;
+
+                        const modalEl = document.getElementById('addressModal');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        modal.hide();
+                    }
+                });
+            });
+
         });
     </script>
 }

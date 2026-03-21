@@ -1,7 +1,9 @@
-﻿using ASP.Models.ASPModel;
+﻿using ASP.Models.Admin.Accounts;
+using ASP.Models.ASPModel;
 using ASP.Models.Domains;
 using ASP.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -12,10 +14,11 @@ namespace ASP.Controllers.Front
     public class CheckoutController : Controller
     {
         private readonly ASPDbContext _context;
-
-        public CheckoutController(ASPDbContext context)
+        private readonly UserManager<ApplicationUser> _userManager;
+        public CheckoutController(ASPDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Checkout page
@@ -25,18 +28,25 @@ namespace ASP.Controllers.Front
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var cart = await _context.Carts
-    .Include(c => c.CartItems)
-        .ThenInclude(ci => ci.ProductVariant)
-            .ThenInclude(pv => pv.Product)
-                .ThenInclude(p => p.ProductImages) // <--- Lấy danh sách ảnh ở đây
-    .FirstOrDefaultAsync(c => c.UserId == userId);
+                .Include(c => c.CartItems)
+                .ThenInclude(ci => ci.ProductVariant)
+                .ThenInclude(pv => pv.Product)
+                .ThenInclude(p => p.ProductImages)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+            var shippingAddress = await _context.ShippingAddresses
+                .Where(s => s.UserId.Equals(cart.UserId))
+                .ToListAsync();
 
+            var user = await _userManager.GetUserAsync(User);
+            
             if (cart == null || !cart.CartItems.Any())
                 return RedirectToAction("Index", "Cart");
 
             var vm = new CheckoutViewModel
             {
                 CartItems = cart.CartItems.ToList(),
+                Addresses = shippingAddress,
+                user = user,
                 TotalAmount = cart.CartItems.Sum(x => x.Quantity * x.ProductVariant.Price)
             };
 

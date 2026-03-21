@@ -1,4 +1,6 @@
-﻿using ASP.Models.Domains;
+﻿using ASP.Models.Admin.Accounts;
+using ASP.Models.ASPModel;
+using ASP.Models.Domains;
 
 namespace ASP.Models.ViewModels
 {
@@ -6,11 +8,9 @@ namespace ASP.Models.ViewModels
     {
         public List<CartItem> CartItems { get; set; }
 
-        public string FullName { get; set; }
-        public string Address { get; set; }
-        public string Phone { get; set; }
+        public List<ShippingAddress> Addresses { get; set; }
 
-        public string PaymentMethod { get; set; } // COD, VNPay
+        public ApplicationUser user { get; set; }
 
         public decimal TotalAmount { get; set; }
     }

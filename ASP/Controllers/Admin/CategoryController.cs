@@ -26,13 +26,17 @@ namespace ASP.Controllers.Admin
         [HttpGet]
         [Route("admin/Category", Name = "admin.categories")]
         [Route("admin/Category/Index")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            string? searchString = "",
+            int psize = 10,
+            int page = 1,
+            string sort = "-CategoryId")
         {
             var hasAccess = await _authService.AuthorizeAsync(User, new DocumentAuth(), PolicyOperations.ASPCategoriesView);
             if (!hasAccess.Succeeded) return new ForbidResult();
 
-            var categories = await _categoryRepo.GetAllCategoriesAsync();
-            return View("../Admin/Categories/Index", categories);
+            var list = await _categoryRepo.GetAllByFilterAsync(searchString, psize, page, sort);
+            return View("../Admin/Categories/Index", list);
         }
 
         [HttpGet]

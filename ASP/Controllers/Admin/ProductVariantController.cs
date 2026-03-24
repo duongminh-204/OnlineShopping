@@ -29,13 +29,17 @@ namespace ASP.Controllers.Admin
         [HttpGet]
         [Route("admin/ProductVariant", Name = "admin.productvariants")]
         [Route("admin/ProductVariant/Index")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            string? searchString = "",
+            int psize = 10,
+            int page = 1,
+            string sort = "-VariantId")
         {
             var hasAccess = await _authService.AuthorizeAsync(User, new DocumentAuth(), PolicyOperations.ASPProductVariantsView);
             if (!hasAccess.Succeeded) return new ForbidResult();
 
-            var variants = await _variantRepo.GetAllVariantsAsync();
-            return View("../Admin/ProductVariants/Index", variants);
+            var list = await _variantRepo.GetAllByFilterAsync(searchString, psize, page, sort);
+            return View("../Admin/ProductVariants/Index", list);
         }
 
         [HttpGet]

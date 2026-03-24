@@ -1,6 +1,8 @@
 using ASP.Models.ASPModel;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
+using Microsoft.AspNetCore.Routing;
+using ReflectionIT.Mvc.Paging;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
@@ -19,12 +21,34 @@ namespace ASP.Models.Domains
             _hubContext = hubContext;
         }
 
-        public async Task<IEnumerable<ProductVariant>> GetAllVariantsAsync()
+        public async Task<PagingList<ProductVariant>> GetAllByFilterAsync(string? searchString, int pageSize, int page, string? sort)
         {
-            return await _context.ProductVariants
+            var query = _context.ProductVariants
                 .Include(pv => pv.Product)
-                .OrderByDescending(pv => pv.VariantId)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                searchString = searchString.Trim().ToLower();
+                query = query.Where(pv =>
+                    (pv.Product != null && pv.Product.ProductName.ToLower().Contains(searchString)) ||
+                    (pv.SKU != null && pv.SKU.ToLower().Contains(searchString)) ||
+                    (pv.Size != null && pv.Size.ToLower().Contains(searchString)) ||
+                    (pv.Color != null && pv.Color.ToLower().Contains(searchString))
+                );
+            }
+
+            query = query.OrderByDescending(pv => pv.VariantId);
+
+            var list = await PagingList.CreateAsync(query, pageSize, page, sort, "VariantId");
+
+            list.RouteValue = new RouteValueDictionary
+            {
+                { "searchString", searchString },
+                { "psize", pageSize }
+            };
+
+            return list;
         }
 
         public async Task<ProductVariant?> GetVariantByIdAsync(int id)
@@ -41,7 +65,6 @@ namespace ASP.Models.Domains
                 _context.ProductVariants.Add(variant);
                 await _context.SaveChangesAsync();
                 
-                // Real-time notification
                 await _hubContext.Clients.All.SendAsync("VariantCreated", variant);
                 
                 return true;
@@ -59,7 +82,6 @@ namespace ASP.Models.Domains
                 _context.ProductVariants.Update(variant);
                 await _context.SaveChangesAsync();
                 
-                // Real-time notification
                 await _hubContext.Clients.All.SendAsync("VariantUpdated", variant);
                 
                 return true;
@@ -77,7 +99,6 @@ namespace ASP.Models.Domains
                 var variant = await _context.ProductVariants.FindAsync(id);
                 if (variant == null) return false;
 
-                // Cache ProductId to send in event
                 int productId = variant.ProductId;
 
                 bool isReferenced = await _context.OrderDetails.AnyAsync(od => od.VariantId == id) ||
@@ -85,21 +106,17 @@ namespace ASP.Models.Domains
 
                 if (isReferenced)
                 {
-                    // Soft delete because it is referenced in old orders or cart items
                     variant.IsActive = false;
                     _context.ProductVariants.Update(variant);
                     await _context.SaveChangesAsync();
                     
-                    // Real-time notification for update
                     await _hubContext.Clients.All.SendAsync("VariantUpdated", variant);
                 }
                 else
                 {
-                    // Safe to hard delete
                     _context.ProductVariants.Remove(variant);
                     await _context.SaveChangesAsync();
                     
-                    // Real-time notification for delete
                     await _hubContext.Clients.All.SendAsync("VariantDeleted", id, productId);
                 }
                 

@@ -3,8 +3,9 @@ using ASP.Models.ASPModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Routing;
+using ReflectionIT.Mvc.Paging;
 using ASP.Hubs;
 
 namespace ASP.Models.Domains
@@ -33,6 +34,30 @@ namespace ASP.Models.Domains
                 .ToListAsync();
         }
 
+        public async Task<PagingList<Category>> GetAllByFilterAsync(string? searchString, int pageSize, int page, string? sort)
+        {
+            var query = _context.Categories
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                searchString = searchString.Trim().ToLower();
+                query = query.Where(c => c.CategoryName.ToLower().Contains(searchString));
+            }
+
+            query = query.OrderByDescending(c => c.CategoryId);
+
+            var list = await PagingList.CreateAsync(query, pageSize, page, sort, "CategoryId");
+
+            list.RouteValue = new RouteValueDictionary
+            {
+                { "searchString", searchString },
+                { "psize", pageSize }
+            };
+
+            return list;
+        }
+
         public async Task<Category?> GetCategoryByIdAsync(int id)
         {
             return await _context.Categories
@@ -46,7 +71,6 @@ namespace ASP.Models.Domains
                 _context.Categories.Add(category);
                 await _context.SaveChangesAsync();
 
-                // Real-time notification
                 await _hubContext.Clients.All.SendAsync("CategoryCreated", category);
 
                 return true;
@@ -68,7 +92,6 @@ namespace ASP.Models.Domains
                 
                 await _context.SaveChangesAsync();
 
-                // Real-time notification
                 await _hubContext.Clients.All.SendAsync("CategoryUpdated", existing);
 
                 return true;
@@ -90,14 +113,12 @@ namespace ASP.Models.Domains
 
                 if (isReferenced)
                 {
-                    // If referenced, we might not be able to delete it due to restrict constraint
                     return false;
                 }
                 
                 _context.Categories.Remove(category);
                 await _context.SaveChangesAsync();
 
-                // Real-time notification
                 await _hubContext.Clients.All.SendAsync("CategoryDeleted", id);
                 
                 return true;

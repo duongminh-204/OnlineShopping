@@ -102,6 +102,7 @@ builder.Services.AddScoped<ProductVariantRepositoryInterface, ProductVariantRepo
 builder.Services.AddScoped<OrderRepositoryInterface, OrderRepository>();
 builder.Services.AddScoped<OrderDetailRepositoryInterface, OrderDetailRepository>();
 builder.Services.AddScoped<CategoryRepositoryInterface, CategoryRepository>();
+builder.Services.AddScoped<ProductImageRepositoryInterface, ProductImageRepository>();
 //builder.Services.AddScoped<UserPolicyAuthorizationHandler>();
 
 //builder.Services.AddTransient<EmailServiceInterface, GmailSmtpService>();

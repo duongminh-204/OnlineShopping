@@ -205,4 +205,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
   
     updateCartCount();
+    document.querySelectorAll(".change-image-input").forEach(input => {
+
+        input.addEventListener("change", function () {
+
+            const file = this.files[0];
+            const productId = this.dataset.productId;
+
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append("productId", productId);
+            formData.append("imageFile", file);
+
+            fetch("/Product/UpdateProductImage", {
+                method: "POST",
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+
+                    if (data.success) {
+
+                        const card = this.closest(".product-card");
+                        const img = card.querySelector("img");
+
+                        img.src = data.newImageUrl + "?t=" + new Date().getTime();
+                    }
+                });
+
+        });
+
+    });
 });

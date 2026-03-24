@@ -1,0 +1,72 @@
+﻿@model ASP.Models.Admin.Accounts.ApplicationUser
+
+<div class="p-3">
+    <h5 class="mb-3 text-center">Chỉnh sửa thông tin cá nhân</h5>
+
+    <form id="editProfileForm" asp-action="UpdateProfile" asp-controller="Account" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+
+        <div class="text-center mb-4">
+            <img src="~/assets/users/@(Model.Avatar ?? "default-avatar.png")"
+                 alt="Avatar"
+                 class="rounded-circle shadow"
+                 style="width:100px; height:100px; object-fit:cover; border:3px solid #eee;"
+                 id="previewAvatar" />
+
+            <div class="mt-3">
+                <label class="btn btn-sm btn-outline-primary">
+                    Chọn ảnh mới
+                    <input type="file" name="Avatar" id="avatarInput" accept="image/*" style="display:none;" />
+                </label>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2" id="removeAvatarBtn" @(string.IsNullOrEmpty(Model.Avatar) ? "disabled" : "")>
+                    Xóa ảnh
+                </button>
+                <input type="hidden" name="rmavatar" id="rmavatar" value="" />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Họ và tên</label>
+            <input type="text" class="form-control" name="FullName" value="@Model.FullName" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Số điện thoại</label>
+            <input type="text" class="form-control" name="PhoneNumber" value="@Model.PhoneNumber" />
+        </div>
+
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary px-4">Lưu thay đổi</button>
+            <button type="button" class="btn btn-outline-secondary px-4 ms-2" data-bs-dismiss="modal">Hủy</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Preview ảnh khi chọn file
+    document.getElementById('avatarInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewAvatar').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            // Reset remove flag khi chọn ảnh mới
+            document.getElementById('rmavatar').value = "";
+        }
+    });
+
+    // Xử lý nút xóa ảnh
+    document.getElementById('removeAvatarBtn').addEventListener('click', function() {
+        document.getElementById('previewAvatar').src = "/assets/users/default-avatar.png";
+        document.getElementById('avatarInput').value = "";
+        document.getElementById('rmavatar').value = "remove";
+    });
+</script>
+
+<style>
+    #previewAvatar {
+        object-fit: cover;
+    }
+</style>

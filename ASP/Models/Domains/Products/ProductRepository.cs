@@ -53,6 +53,10 @@ namespace ASP.Models.Domains
                 .Include(p => p.ProductVariants)
                 .FirstOrDefaultAsync(p => p.ProductId == id);
         }
-
+        public async Task ImportProductsAsync(List<Product> products)
+        {
+            await _context.Products.AddRangeAsync(products);
+            await _context.SaveChangesAsync();
+        }
     }
 }

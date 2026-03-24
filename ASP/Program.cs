@@ -98,6 +98,7 @@ builder.Services.AddScoped<ProductRepositoryInterface, ProductRepository>();
 builder.Services.AddScoped<CategoryRepositoryInterface, CategoryRepository>();
 builder.Services.AddScoped<CartRepositoyInterface, CartRepository>();
 builder.Services.AddScoped<CartItemRepositoryInterface, CartItemRepository>();
+builder.Services.AddScoped<ProductImageRepositoryInterface, ProductImageRepository>();
 //builder.Services.AddScoped<UserPolicyAuthorizationHandler>();
 
 //builder.Services.AddTransient<EmailServiceInterface, GmailSmtpService>();

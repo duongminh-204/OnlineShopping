@@ -1,5 +1,8 @@
-﻿using ASP.Models.ASPModel;
+﻿using ASP.Hubs;
+using ASP.Models.ASPModel;
+using ASP.Models.Domains;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace ASP.Controllers.Admin
@@ -7,25 +10,26 @@ namespace ASP.Controllers.Admin
     [Route("admin/productimage")]
     public class ProductImageController : Controller
     {
-        private readonly ASPDbContext _context;
-        public ProductImageController(ASPDbContext context) 
+        private readonly ProductImageRepositoryInterface _repo;
+        private readonly IHubContext<ProductHub> _hub;
+
+        public ProductImageController(ProductImageRepositoryInterface repo, IHubContext<ProductHub> hub)
         {
-            _context = context;
+            _repo = repo;
+            _hub = hub;
         }
 
         [HttpGet("")]
         public IActionResult Index(int productId, string? filter, int? categoryIdSearch, int page = 1)
         {
-            var images = _context.ProductImages
-                .Where(x => x.ProductId == productId)
-                .ToList();
+            var images = _repo.GetImagesByProductId(productId);
 
             ViewBag.ProductId = productId;
             ViewBag.Filter = filter;
             ViewBag.categoryIdSearch = categoryIdSearch;
             ViewBag.Page = page;
 
-            var product = _context.Products.Find(productId);
+            var product = _repo.GetProduct(productId);
             ViewBag.ProductName = product?.ProductName;
 
             return View("~/Views/Admin/ProductImage/Index.cshtml", images);
@@ -45,7 +49,6 @@ namespace ASP.Controllers.Admin
         [HttpPost("create")]
         public async Task<IActionResult> Create(int productId, string? imageName, IFormFile imageFile, string? filter, int? categoryIdSearch, int page = 1)
         {
-
             if (imageFile == null || imageFile.Length == 0)
                 return Json(new { success = false, message = "Please select image" });
 
@@ -81,18 +84,18 @@ namespace ASP.Controllers.Admin
                 await imageFile.CopyToAsync(stream);
             }
 
-            bool hasMain = _context.ProductImages
-                .Any(x => x.ProductId == productId && x.IsMain);
+            bool hasMain = _repo.HasMainImage(productId);
 
-            var img = new ASP.Models.Domains.ProductImage
+            var img = new ProductImage
             {
                 ProductId = productId,
                 ImageUrl = "/images/productImage/" + fileName,
                 IsMain = !hasMain
             };
 
-            _context.ProductImages.Add(img);
-            await _context.SaveChangesAsync();
+            await _repo.AddImageAsync(img);
+            await _hub.Clients.All.SendAsync("ProductImageUpdated", productId);
+            await _hub.Clients.All.SendAsync("ProductUpdated", productId);
 
             return RedirectToAction("Index", new
             {
@@ -105,19 +108,19 @@ namespace ASP.Controllers.Admin
 
 
         [HttpPost("delete/{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> DeleteAsync(int id)
         {
-            var img = _context.ProductImages.Find(id);
+            var img = _repo.GetImageById(id);
 
             if (img == null)
                 return Json(new { success = false, message = "Image not found" });
+
             int productId = img.ProductId;
 
             if (img.IsMain)
             {
-                var anotherImage = _context.ProductImages
-                    .Where(x => x.ProductId == productId && x.ProductImageId != img.ProductImageId)
-                    .FirstOrDefault();
+                var anotherImage = _repo.GetImagesByProductId(productId)
+                    .FirstOrDefault(x => x.ProductImageId != img.ProductImageId);
 
                 if (anotherImage != null)
                 {
@@ -132,42 +135,37 @@ namespace ASP.Controllers.Admin
                 System.IO.File.Delete(filePath);
             }
 
-            _context.ProductImages.Remove(img);
-            _context.SaveChanges();
+            _repo.DeleteImage(img);
+            await _hub.Clients.All.SendAsync("ProductImageUpdated", productId);
+            await _hub.Clients.All.SendAsync("ProductUpdated", productId);
 
-            bool hasImage = _context.ProductImages.Any(x => x.ProductId == productId);
+            bool hasImage = _repo.HasAnyImage(productId);
+
             if (!hasImage)
             {
-                var product = _context.Products.FirstOrDefault(x => x.ProductId == productId);
+                var product = _repo.GetProduct(productId);
+
                 if (product != null)
                 {
                     product.IsActive = false;
-                    _context.SaveChanges();
+                    _repo.UpdateProduct(product);
                 }
             }
-
 
             return Json(new { success = true });
         }
 
         [HttpPost("setmain/{id}")]
-        public IActionResult SetMain(int id)
+        public async Task<IActionResult> SetMainAsync(int id)
         {
-            var img = _context.ProductImages.Find(id);
+            var img = _repo.GetImageById(id);
 
             if (img == null)
                 return Json(new { success = false, message = "Image not found" });
 
-            var images = _context.ProductImages
-                .Where(x => x.ProductId == img.ProductId)
-                .ToList();
-
-            foreach (var item in images)
-                item.IsMain = false;
-
-            img.IsMain = true;
-
-            _context.SaveChanges();
+            _repo.SetMainImage(img);
+            await _hub.Clients.All.SendAsync("ProductImageUpdated", img.ProductId);
+            await _hub.Clients.All.SendAsync("ProductUpdated", img.ProductId);
 
             return Json(new { success = true });
         }

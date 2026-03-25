@@ -98,7 +98,7 @@
                     @foreach (var item in Model)
                     {
                         count++;
-                        <tr>
+                        <tr data-product-id="@item.ProductId">
                             <td>@count</td>
                             <td>
                                 @if (item.ProductImages != null && item.ProductImages.Any())
@@ -174,7 +174,7 @@
 
 
 @section Scripts {
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
     <script>
 
         function deleteProduct(id)
@@ -225,6 +225,40 @@
             toast.innerText = message;
             toast.style.display = "block";
         }
+
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/productHub")
+            .build();
+
+        connection.start()
+            .then(function () {
+                console.log("SignalR Connected");
+            })
+            .catch(function (err) {
+                console.error(err);
+            });
+
+        connection.on("ProductUpdated", function (productId) {
+
+            const rows = document.querySelectorAll("tr[data-product-id]");
+
+            let found = false;
+
+            rows.forEach(function(row){
+
+                if(row.dataset.productId == productId){
+                    found = true;
+                }
+
+            });
+
+            if(found){
+                console.log("Product changed → reload page");
+                location.reload();
+            }
+
+        });
 
     </script>
 

@@ -1,6 +1,8 @@
-﻿using ASP.Models.ASPModel;
+﻿using ASP.Hubs;
+using ASP.Models.ASPModel;
 using ASP.Models.Domains;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using ReflectionIT.Mvc.Paging;
 
@@ -9,29 +11,19 @@ namespace ASP.Controllers.Admin
     [Route("admin/product")]
     public class ProductController : Controller
     {
-        private readonly ASPDbContext _context;
-        public ProductController(ASPDbContext context)
+        private readonly ProductRepositoryInterface _repo;
+        private readonly IHubContext<ProductHub> _hub;
+
+        public ProductController(ProductRepositoryInterface repo, IHubContext<ProductHub> hub)
         {
-            _context = context;
+            _repo = repo;
+            _hub = hub;
         }
 
         [Route("")]
         public IActionResult Index(string? filter, int? categoryIdSearch, int page = 1)
         {
-            var query = _context.Products
-                .Include(x => x.Category)
-                .Include(x => x.ProductImages)
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(filter))
-            {
-                query = query.Where(x => x.ProductName.Contains(filter));
-            }
-
-            if (categoryIdSearch != null && categoryIdSearch > 0)
-            {
-                query = query.Where(x => x.CategoryId == categoryIdSearch);
-            }
+            var query = _repo.GetProducts(filter, categoryIdSearch);
 
             int pageSize = 10;
 
@@ -51,7 +43,7 @@ namespace ASP.Controllers.Admin
                 { "categoryIdSearch", categoryIdSearch }
             };
 
-            ViewBag.Categories = _context.Categories.ToList();
+            ViewBag.Categories = _repo.GetCategories();
             ViewBag.categoryIdSearch = categoryIdSearch;
 
             return View("~/Views/Admin/Product/Index.cshtml", model);
@@ -62,28 +54,28 @@ namespace ASP.Controllers.Admin
         [Route("create")]
         public IActionResult Create(string? filter, int? categoryIdSearch, int page = 1)
         {
-            ViewBag.Categories = _context.Categories.ToList();
+            ViewBag.Categories = _repo.GetCategories();
             ViewBag.Filter = filter;
             ViewBag.categoryIdSearch = categoryIdSearch;
             ViewBag.Page = page;
 
-
             return View("~/Views/Admin/Product/Create.cshtml");
         }
 
+
         [HttpPost]
         [Route("create")]
-        public IActionResult Create(Product product, string? filter, int? categoryIdSearch, int page = 1)
+        public async Task<IActionResult> Create(Product product, string? filter, int? categoryIdSearch, int page = 1)
         {
-            // bỏ validate navigation
             ModelState.Remove("Category");
             ModelState.Remove("ProductImages");
             ModelState.Remove("ProductVariants");
 
             if (ModelState.IsValid)
             {
-                _context.Products.Add(product);
-                _context.SaveChanges();
+                _repo.Add(product);
+
+                await _hub.Clients.All.SendAsync("ProductUpdated", product.ProductId);
 
                 return RedirectToAction("Index", new
                 {
@@ -93,10 +85,11 @@ namespace ASP.Controllers.Admin
                 });
             }
 
-            ViewBag.Categories = _context.Categories.ToList();
+            ViewBag.Categories = _repo.GetCategories();
             ViewBag.Filter = filter;
             ViewBag.Page = page;
             ViewBag.categoryIdSearch = categoryIdSearch;
+
             return View("~/Views/Admin/Product/Create.cshtml", product);
         }
 
@@ -104,15 +97,14 @@ namespace ASP.Controllers.Admin
         [Route("edit/{id}")]
         public IActionResult Edit(int id, string? filter, int? categoryIdSearch, int page = 1)
         {
-            var product = _context.Products
-                .FirstOrDefault(x => x.ProductId == id);
+            var product = _repo.GetById(id);
 
             if (product == null)
             {
                 return NotFound();
             }
 
-            ViewBag.Categories = _context.Categories.ToList();
+            ViewBag.Categories = _repo.GetCategories();
             ViewBag.Filter = filter;
             ViewBag.categoryIdSearch = categoryIdSearch;
             ViewBag.Page = page;
@@ -122,20 +114,18 @@ namespace ASP.Controllers.Admin
 
         [HttpPost]
         [Route("edit/{id}")]
-        public IActionResult Edit(int id, Product model, string? filter, int? categoryIdSearch, int page = 1)
+        public async Task<IActionResult> Edit(int id, Product model, string? filter, int? categoryIdSearch, int page = 1)
         {
-            //System.Diagnostics.Debug.WriteLine("POST RUNNING");
-
             ModelState.Remove("Category");
             ModelState.Remove("ProductImages");
             ModelState.Remove("ProductVariants");
 
-            var product = _context.Products.FirstOrDefault(x => x.ProductId == id);
+            var product = _repo.GetById(id);
 
             if (product == null)
                 return NotFound();
 
-            bool hasImage = _context.ProductImages.Any(x => x.ProductId == id);
+            bool hasImage = _repo.HasImage(id);
 
             if (model.IsActive && !hasImage)
             {
@@ -144,7 +134,7 @@ namespace ASP.Controllers.Admin
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = _context.Categories.ToList();
+                ViewBag.Categories = _repo.GetCategories();
                 ViewBag.Filter = filter;
                 ViewBag.categoryIdSearch = categoryIdSearch;
                 ViewBag.Page = page;
@@ -157,7 +147,8 @@ namespace ASP.Controllers.Admin
             product.Quantity = model.Quantity;
             product.IsActive = model.IsActive;
 
-            _context.SaveChanges();
+            _repo.Update(product);
+           await _hub.Clients.All.SendAsync("ProductUpdated", product.ProductId);
 
             return RedirectToAction("Index", new
             {
@@ -167,22 +158,17 @@ namespace ASP.Controllers.Admin
             });
         }
 
-
         [HttpPost]
         [Route("delete/{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> DeleteAsync(int id)
         {
-            var product = _context.Products
-                .Include(x => x.ProductImages)
-                .Include(x => x.ProductVariants)
-                .FirstOrDefault(x => x.ProductId == id);
+            var product = _repo.GetById(id);
 
             if (product == null)
             {
                 return Json(new { success = false, message = "Product not found" });
             }
 
-            // kiểm tra nếu còn ảnh
             if (product.ProductImages != null && product.ProductImages.Any())
             {
                 return Json(new
@@ -192,7 +178,6 @@ namespace ASP.Controllers.Admin
                 });
             }
 
-            // kiểm tra nếu còn variant
             if (product.ProductVariants != null && product.ProductVariants.Any())
             {
                 return Json(new
@@ -204,8 +189,8 @@ namespace ASP.Controllers.Admin
 
             try
             {
-                _context.Products.Remove(product);
-                _context.SaveChanges();
+                _repo.Delete(product);
+                await _hub.Clients.All.SendAsync("ProductUpdated", product.ProductId);
 
                 return Json(new { success = true });
             }

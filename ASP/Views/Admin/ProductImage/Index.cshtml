@@ -129,7 +129,7 @@
 
 
 @section Scripts {
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
     <script>
 
         function deleteImage(id)
@@ -205,6 +205,26 @@
             toast.innerText = message;
             toast.style.display = "block";
         }
+
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/productHub")
+            .build();
+
+        connection.start()
+            .then(() => console.log("SignalR connected"))
+            .catch(err => console.error(err));
+
+        connection.on("ProductImageUpdated", function (productId) {
+
+            const currentProductId = '@ViewBag.ProductId';
+
+            if (currentProductId == productId) {
+                console.log("Images changed → reload");
+                location.reload();
+            }
+
+        });
 
     </script>
 

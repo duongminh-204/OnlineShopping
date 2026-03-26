@@ -1,4 +1,4 @@
-# .NET / Visual Studio
+# Visual Studio & .NET
 bin/
 obj/
 *.user
@@ -6,4 +6,9 @@ obj/
 *.userprefs
 *.cache
 *.tmp
+*.log
 ASP/ASP.csproj.Backup.tmp
+
+# Build artifacts
+**/Debug/
+**/Release/

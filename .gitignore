@@ -1,4 +1,5 @@
 # Visual Studio & .NET
+.vs/
 bin/
 obj/
 *.user
@@ -12,3 +13,18 @@ ASP/ASP.csproj.Backup.tmp
 # Build artifacts
 **/Debug/
 **/Release/
+**/DebugPublic/
+
+# Visual Studio specific
+*.vs.sln
+*.db
+*.db-shm
+*.db-wal
+
+# Rider / JetBrains (nếu có)
+.idea/
+
+# Other common temp files
+*.pdb
+*.ilk
+*.idb

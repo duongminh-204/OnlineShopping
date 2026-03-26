@@ -217,6 +217,9 @@
                             <a class="nav-link text-dark" asp-route="admin.auths.login">
                                 <i class="fas fa-sign-in-alt"></i> Login
                             </a>
+                            <a class="nav-link text-dark" asp-route="admin.auths.register">
+                                <i class="fas fa-sign-in-alt"></i> Register
+                            </a>
                         </li>
                     }
                     else
@@ -232,6 +235,7 @@
                                     </a>
                                 </li>
                                 <li><a class="dropdown-item" href="~/admin"><i class="fas fa-cog me-1"></i> Admin page</a></li>
+                                <li><a class="dropdown-item" asp-controller="Order" asp-action="History"><i class="fas fa-sign-out-alt me-1"></i> Order History</a></li>
                                 <li><a class="dropdown-item" asp-route="admin.auth.logout"><i class="fas fa-sign-out-alt me-1"></i> Logout</a></li>
                             </ul>
                         </li>

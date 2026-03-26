@@ -1,0 +1,24 @@
+﻿# Build folders
+bin/
+obj/
+
+# Visual Studio
+.vs/
+
+# Build output
+Debug/
+Release/
+
+# User settings
+*.user
+*.suo
+
+# Cache
+*.cache
+
+# Logs
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -162,7 +162,7 @@ namespace ASP.Models.Admin.Accounts
                     logContent += EnumTypeLog.SetLogLine("Trạng thái", find.Status.ToString(), request.Status.ToString());
                     //
                     #endregion
-                    find.UserName = string.IsNullOrEmpty(request.UserName) ? null: request.UserName.Trim();
+                    find.UserName = string.IsNullOrEmpty(request.UserName) ? null : request.UserName.Trim();
                     find.FullName = !string.IsNullOrEmpty(request.FullName) ? request.FullName.Trim() : null;
                     //find.PassWord = request.PassWord;
                     //if (!string.IsNullOrEmpty(request.PassWord))
@@ -414,7 +414,8 @@ namespace ASP.Models.Admin.Accounts
         //
         public async Task<IActionResult> ResetPassword(string id, AccountListenerInterface listener, ApplicationUser request)
         {
-            using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled)) {
+            using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
                 try
                 {
                     var find = _context.Users.FirstOrDefault(f => f.Id == id);
@@ -446,7 +447,8 @@ namespace ASP.Models.Admin.Accounts
                     scope.Complete();
                     return listener.UpdateAccountSuccess();
                 }
-                catch (DbException ex) {
+                
+                 catch (DbException ex)  {
                     scope.Dispose();
                     _logger.LogError("{0}/{1}: {2}", MethodBase.GetCurrentMethod().DeclaringType, MethodBase.GetCurrentMethod().Name, ex.Message);
                     return listener.DeleteAccountFails();

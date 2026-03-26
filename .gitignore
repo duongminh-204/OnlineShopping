@@ -1,4 +1,30 @@
+# Visual Studio & .NET
+.vs/
 bin/
 obj/
-.vs/
 *.user
+*.suo
+*.userprefs
+*.cache
+*.tmp
+*.log
+ASP/ASP.csproj.Backup.tmp
+
+# Build artifacts
+**/Debug/
+**/Release/
+**/DebugPublic/
+
+# Visual Studio specific
+*.vs.sln
+*.db
+*.db-shm
+*.db-wal
+
+# Rider / JetBrains (nếu có)
+.idea/
+
+# Other common temp files
+*.pdb
+*.ilk
+*.idb

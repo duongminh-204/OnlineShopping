@@ -148,7 +148,6 @@
 		<PackageReference Include="EPPlus" Version="8.2.1" />
 		<PackageReference Include="FreeSpire.Barcode" Version="6.6.0" />
 		<PackageReference Include="iTextSharp.LGPLv2.Core" Version="3.7.4" />
-		<PackageReference Include="MailKit" Version="4.14.1" />
 		<PackageReference Include="PdfiumPrinter" Version="1.4.1" />
 		<PackageReference Include="PuppeteerSharp" Version="20.2.2" />
 		<PackageReference Include="Spire.PDF" Version="8.1.0" />
@@ -175,7 +174,6 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.6" />
-		<PackageReference Include="MimeKit" Version="4.14.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 		<PackageReference Include="ReflectionIT.Mvc.Paging" Version="4.0.0" />
 		<PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />

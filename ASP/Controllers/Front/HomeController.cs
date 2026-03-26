@@ -16,7 +16,6 @@ using ASP.Models.ASPModel;
 
 namespace ASP.Controllers.Front
 {
-    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

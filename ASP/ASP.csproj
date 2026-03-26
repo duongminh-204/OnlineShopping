@@ -179,6 +179,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+<<<<<<< HEAD
+=======
+		<Folder Include="DTO\" />
+>>>>>>> 68c794d8db53190437228e938fd240e676c0ddd2
 		<Folder Include="Logs\" />
 		<Folder Include="wwwroot\assets\categories\" />
 		<Folder Include="wwwroot\assets\ckgallery\" />

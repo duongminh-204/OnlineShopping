@@ -65,6 +65,7 @@ namespace ASP.Models.Domains
             var query = _context.Products
                 .Include(p => p.Category)
                 .Include(p => p.ProductImages)
+                .Include(p => p.ProductVariants)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(filter))

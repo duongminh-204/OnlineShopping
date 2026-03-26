@@ -70,6 +70,7 @@ namespace ASP.Controllers.Admin
             ModelState.Remove("Category");
             ModelState.Remove("ProductImages");
             ModelState.Remove("ProductVariants");
+            ModelState.Remove("Description");
 
             if (ModelState.IsValid)
             {
@@ -119,6 +120,7 @@ namespace ASP.Controllers.Admin
             ModelState.Remove("Category");
             ModelState.Remove("ProductImages");
             ModelState.Remove("ProductVariants");
+            ModelState.Remove("Description");
 
             var product = _repo.GetById(id);
 
@@ -144,7 +146,7 @@ namespace ASP.Controllers.Admin
             product.ProductName = model.ProductName;
             product.CategoryId = model.CategoryId;
             product.Description = model.Description;
-            product.Quantity = model.Quantity;
+            //product.Quantity = model.Quantity;
             product.IsActive = model.IsActive;
 
             _repo.Update(product);

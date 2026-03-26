@@ -90,24 +90,12 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cVGhlbWVPcHRpb25zXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/PRN222/OnlineShopping/ASP/Views/Front/DensoWareHouse/Calendar.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRnJvbnRcRGVuc29XYXJlSG91c2VcQ2FsZW5kYXIuY3NodG1s
+[D:/PRN222/OnlineShopping/ASP/Views/Front/Carts/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRnJvbnRcQ2FydHNcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/PRN222/OnlineShopping/ASP/Views/Front/DensoWareHouse/OrderList.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRnJvbnRcRGVuc29XYXJlSG91c2VcT3JkZXJMaXN0LmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
-[D:/PRN222/OnlineShopping/ASP/Views/Front/DensoWareHouse/Statistic.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRnJvbnRcRGVuc29XYXJlSG91c2VcU3RhdGlzdGljLmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
-[D:/PRN222/OnlineShopping/ASP/Views/Front/DensoWareHouse/Statisticv1.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRnJvbnRcRGVuc29XYXJlSG91c2VcU3RhdGlzdGljdjEuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[D:/PRN222/OnlineShopping/ASP/Views/Front/Home/CustomerList.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRnJvbnRcSG9tZVxDdXN0b21lckxpc3QuY3NodG1s
+[D:/PRN222/OnlineShopping/ASP/Views/Front/Checkout/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRnJvbnRcQ2hlY2tvdXRcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/PRN222/OnlineShopping/ASP/Views/Front/Home/Guide.cshtml]
@@ -122,16 +110,24 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRnJvbnRcSG9tZVxOb3RpZmljYXRpb24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/PRN222/OnlineShopping/ASP/Views/Front/Home/OrderList.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRnJvbnRcSG9tZVxPcmRlckxpc3QuY3NodG1s
+[D:/PRN222/OnlineShopping/ASP/Views/Front/Home/Notify.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRnJvbnRcSG9tZVxOb3RpZnkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/PRN222/OnlineShopping/ASP/Views/Front/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRnJvbnRcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/PRN222/OnlineShopping/ASP/Views/Home/Notify.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxOb3RpZnkuY3NodG1s
+[D:/PRN222/OnlineShopping/ASP/Views/Front/Products/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRnJvbnRcUHJvZHVjdHNcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/PRN222/OnlineShopping/ASP/Views/Front/Products/ProductDetail.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRnJvbnRcUHJvZHVjdHNcUHJvZHVjdERldGFpbC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/PRN222/OnlineShopping/ASP/Views/Front/Products/_CategoryList.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRnJvbnRcUHJvZHVjdHNcX0NhdGVnb3J5TGlzdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/PRN222/OnlineShopping/ASP/Views/Page404/Index.cshtml]
@@ -148,6 +144,14 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/PRN222/OnlineShopping/ASP/Views/Shared/Components/Header/Default.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXENvbXBvbmVudHNcSGVhZGVyXERlZmF1bHQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/PRN222/OnlineShopping/ASP/Views/Shared/Components/Header/_EditUserProfile.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXENvbXBvbmVudHNcSGVhZGVyXF9FZGl0VXNlclByb2ZpbGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/PRN222/OnlineShopping/ASP/Views/Shared/Components/Header/_UserProfile.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXENvbXBvbmVudHNcSGVhZGVyXF9Vc2VyUHJvZmlsZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/PRN222/OnlineShopping/ASP/Views/Shared/Components/MenuList/Default.cshtml]

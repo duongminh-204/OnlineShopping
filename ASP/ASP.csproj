@@ -117,4 +117,7 @@
     <None Include="wwwroot\lib\AdminLTE\.github\ISSUE_TEMPLATE\feature-request-for-adminlte-v3-x.md" />
     <None Include="wwwroot\lib\AdminLTE\.github\workflows\node-install.yml" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SeverFashionShop\SeverFashionShop.csproj" />
+  </ItemGroup>
 </Project>

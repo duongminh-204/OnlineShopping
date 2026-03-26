@@ -44,8 +44,7 @@ namespace ASP.Controllers.Admin
             Login login = new Login();
             login.ReturnUrl = returnUrl;
             //
-            var chkLogged = _userManager.FindByNameAsync(_userManager.GetUserName(User));//.Result.UserName
-            if (chkLogged.Exception == null)
+            if (User.Identity != null && User.Identity.IsAuthenticated)
             {
                 if (login.ReturnUrl != null)
                 {
@@ -323,7 +322,7 @@ namespace ASP.Controllers.Admin
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
-            return RedirectToAction("Login", "Auth");
+            return RedirectToAction("Index", "Home");
         }
         [HttpGet]
         [Route("Register")]

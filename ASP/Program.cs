@@ -20,6 +20,7 @@ using Microsoft.Extensions.Options;
 using OfficeOpenXml;
 using ReflectionIT.Mvc.Paging;
 using Serilog;
+using ASP.Models.Domains;
 
 var builder = WebApplication.CreateBuilder(args);
 

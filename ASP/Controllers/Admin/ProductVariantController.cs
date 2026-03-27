@@ -49,10 +49,21 @@ namespace ASP.Controllers.Admin
             var hasAccess = await _authService.AuthorizeAsync(User, new DocumentAuth(), PolicyOperations.ASPProductVariantsCreate);
             if (!hasAccess.Succeeded) return new ForbidResult();
 
-            var products = _productRepo.GetAllProducts();
+            var products = _productRepo.GetAllProducts1().OrderBy(p => p.ProductName);
             ViewBag.ProductsList = new SelectList(products, "ProductId", "ProductName");
 
             return View("../Admin/ProductVariants/Add", new ProductVariant { IsActive = true });
+        }
+
+        [HttpGet]
+        [Route("admin/ProductVariant/GetProducts")]
+        public IActionResult GetProducts()
+        {
+            var products = _productRepo.GetAllProducts1()
+                .OrderBy(p => p.ProductName)
+                .Select(p => new { p.ProductId, p.ProductName })
+                .ToList();
+            return Json(products);
         }
 
         [HttpPost]
@@ -72,7 +83,7 @@ namespace ASP.Controllers.Admin
                 return RedirectToAction(nameof(Index));
             }
 
-            var products = _productRepo.GetAllProducts();
+            var products = _productRepo.GetAllProducts1().OrderBy(p => p.ProductName);
             ViewBag.ProductsList = new SelectList(products, "ProductId", "ProductName", variant.ProductId);
             TempData["mess-type"] = "error";
             TempData["mess-detail"] = BaseController.BaseMessage("create_fails");
@@ -89,7 +100,7 @@ namespace ASP.Controllers.Admin
             var variant = await _variantRepo.GetVariantByIdAsync(id);
             if (variant == null) return NotFound();
 
-            var products = _productRepo.GetAllProducts();
+            var products = _productRepo.GetAllProducts1().OrderBy(p => p.ProductName);
             ViewBag.ProductsList = new SelectList(products, "ProductId", "ProductName", variant.ProductId);
 
             return View("../Admin/ProductVariants/Edit", variant);
@@ -114,7 +125,7 @@ namespace ASP.Controllers.Admin
                 return RedirectToAction(nameof(Index));
             }
 
-            var products = _productRepo.GetAllProducts();
+            var products = _productRepo.GetAllProducts1().OrderBy(p => p.ProductName);
             ViewBag.ProductsList = new SelectList(products, "ProductId", "ProductName", variant.ProductId);
             TempData["mess-type"] = "error";
             TempData["mess-detail"] = BaseController.BaseMessage("update_fails");

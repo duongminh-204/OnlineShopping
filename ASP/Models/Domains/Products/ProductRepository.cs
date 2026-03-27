@@ -138,7 +138,7 @@ namespace ASP.Models.Domains
             await _context.SaveChangesAsync();
         }
 
-        // chuyển query filter từ Controller sang Repo
+
         public IQueryable<Product> GetProducts(string? filter, int? categoryId)
         {
             var query = _context.Products
@@ -160,7 +160,6 @@ namespace ASP.Models.Domains
             return query;
         }
 
-        // lấy product theo id
         public Product? GetById(int id)
         {
             return _context.Products
@@ -169,34 +168,29 @@ namespace ASP.Models.Domains
                 .FirstOrDefault(p => p.ProductId == id);
         }
 
-        // thêm product
         public void Add(Product product)
         {
             _context.Products.Add(product);
             _context.SaveChanges();
         }
 
-        // update product
         public void Update(Product product)
         {
             _context.Products.Update(product);
             _context.SaveChanges();
         }
 
-        // delete product
         public void Delete(Product product)
         {
             _context.Products.Remove(product);
             _context.SaveChanges();
         }
 
-        // check product có image
         public bool HasImage(int productId)
         {
             return _context.ProductImages.Any(x => x.ProductId == productId);
         }
 
-        // lấy categories (để controller không gọi context)
         public List<Category> GetCategories()
         {
             return _context.Categories.ToList();

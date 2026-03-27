@@ -247,5 +247,39 @@
 </style>
 @section Scripts {
     <script src="~/js/Product.js" asp-append-version="true"></script>
-    
+
+    <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
+
+    <script>
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/adminHub")
+            .build();
+
+        connection.start()
+            .then(() => console.log("SignalR connected (Product list)"))
+            .catch(err => console.error(err));
+
+        connection.on("ProductUpdated", function (productId) {
+
+            console.log("ProductUpdated:", productId);
+             location.reload();
+
+            // const productCard = document.querySelector(`[data-product-id="${productId}"]`);
+
+            // if (productCard) {
+            //     console.log("Product in current page → reload");
+               
+            // }
+
+        });
+        connection.on("ProductImageUpdated", (productId) => {
+            
+             console.log("Product image updated → reload");
+             location.reload();
+            
+        });
+
+
+    </script>
 }

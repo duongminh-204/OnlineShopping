@@ -11,9 +11,9 @@ namespace ASP.Controllers.Admin
     public class ProductImageController : Controller
     {
         private readonly ProductImageRepositoryInterface _repo;
-        private readonly IHubContext<ProductHub> _hub;
+        private readonly IHubContext<AdminHub> _hub;
 
-        public ProductImageController(ProductImageRepositoryInterface repo, IHubContext<ProductHub> hub)
+        public ProductImageController(ProductImageRepositoryInterface repo, IHubContext<AdminHub> hub)
         {
             _repo = repo;
             _hub = hub;

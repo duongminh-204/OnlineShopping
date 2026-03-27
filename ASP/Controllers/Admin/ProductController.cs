@@ -12,9 +12,9 @@ namespace ASP.Controllers.Admin
     public class ProductController : Controller
     {
         private readonly ProductRepositoryInterface _repo;
-        private readonly IHubContext<ProductHub> _hub;
+        private readonly IHubContext<AdminHub> _hub;
 
-        public ProductController(ProductRepositoryInterface repo, IHubContext<ProductHub> hub)
+        public ProductController(ProductRepositoryInterface repo, IHubContext<AdminHub> hub)
         {
             _repo = repo;
             _hub = hub;

@@ -1,18 +1,19 @@
 ﻿using ASP.BaseCommon;
 using ASP.Hubs;
 using ASP.Models;
+using ASP.Models.Admin.Roles;
+using ASP.Models.Admin.ThemeOptions;
+using ASP.Models.ASPModel;
+using ASP.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using ASP.Models.Admin.ThemeOptions;
-using System.Diagnostics;
-using ASP.Models.Admin.Roles;
-using Spire.Xls;
-using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using System.Drawing;
+using Spire.Xls;
 using System.Data;
-using ASP.Models.ASPModel;
+using System.Diagnostics;
+using System.Drawing;
+using System.Reflection;
 
 namespace ASP.Controllers.Front
 {
@@ -39,7 +40,51 @@ namespace ASP.Controllers.Front
 
         public IActionResult Index()
         {
-            return View("../Front/Home/Index");
+            var categories = _context.Categories
+                .OrderBy(c => c.CategoryName)
+                .Select(c => new HomeCategoryItemViewModel
+                {
+                    CategoryId = c.CategoryId,
+                    CategoryName = c.CategoryName,
+                    ImageUrl = _context.Products
+                        .Where(p => p.CategoryId == c.CategoryId && p.IsActive)
+                        .Where(p => p.ProductVariants.Any(v => v.IsActive))
+                        .OrderByDescending(p => p.ProductId)
+                        .Select(p => p.ProductImages
+                            .OrderByDescending(img => img.IsMain)
+                            .Select(img => img.ImageUrl)
+                            .FirstOrDefault())
+                        .FirstOrDefault() ?? "/images/no-image.jpg"
+                })
+                .ToList();
+
+            var baseQuery = _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductVariants)
+                .Where(p => p.IsActive)
+                .Where(p => p.ProductVariants.Any(v => v.IsActive));
+
+            var popularProducts = baseQuery
+                .OrderByDescending(p => _context.OrderDetails
+                    .Where(od => od.ProductVariant.ProductId == p.ProductId)
+                    .Sum(od => (int?)od.Quantity) ?? 0)
+                .Take(8)
+                .ToList();
+
+            var newestProducts = baseQuery
+                .OrderByDescending(p => p.ProductId)
+                .Take(4)
+                .ToList();
+
+            var viewModel = new HomeViewModel
+            {
+                Categories = categories,
+                PopularProducts = popularProducts,
+                NewestProducts = newestProducts
+            };
+
+            return View("../Front/Home/Index", viewModel);
         }
 
         [Route("notification", Name = "front.home.Notify")]

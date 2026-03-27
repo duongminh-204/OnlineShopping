@@ -104,6 +104,8 @@ namespace ASP.Controllers.Front
                 };
 
                 Product product = await _context.Products.FirstOrDefaultAsync(p => p.ProductId == item.ProductVariant.ProductId);
+                ProductVariant variant = await _context.ProductVariants.FirstOrDefaultAsync(pv => pv.VariantId == item.VariantId);
+                variant.QuantityVariants -= item.Quantity;
                 product.Quantity -= item.Quantity;
                 _context.OrderDetails.Add(orderDetail);
             }

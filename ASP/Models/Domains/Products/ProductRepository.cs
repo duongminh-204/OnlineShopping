@@ -139,6 +139,27 @@ namespace ASP.Models.Domains
             await _context.SaveChangesAsync();
         }
 
+        public IQueryable<Product> QueryProducts()
+        {
+            return _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductVariants)
+                .AsQueryable();
+        }
+
+        public async Task<List<Product>> GetRelatedProductsAsync(int productId, int categoryId, int take = 4)
+        {
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductVariants)
+                .Where(p => p.ProductId != productId && p.CategoryId == categoryId && p.IsActive)
+                .OrderByDescending(p => p.ProductId)
+                .Take(take)
+                .ToListAsync();
+        }
+
 
         public IQueryable<Product> GetProducts(string? filter, int? categoryId)
         {

@@ -109,22 +109,116 @@ namespace ASP.ProductServer
             }
         }
 
-      
         private static async Task<string> ProcessRequestAsync(string request)
         {
-            if (!request.Equals("GET_PRODUCTS", StringComparison.OrdinalIgnoreCase))
+            try
             {
+                switch (request.ToUpper())
+                {
+                    case "GET_PRODUCTS":
+                        return await HandleGetProducts();
+
+                    case "GET_PRODUCTS_MANAGE":
+                        return await HandleGetProductManage();
+
+                    case "PING":
+                        return JsonSerializer.Serialize(new
+                        {
+                            success = true,
+                            message = "Server is running"
+                        });
+
+                    default:
+                        return JsonSerializer.Serialize(new
+                        {
+                            success = false,
+                            message = "Lenh khong hop le"
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Loi server: {ex.Message}");
+
                 return JsonSerializer.Serialize(new
                 {
                     success = false,
-                    message = "Lenh khong hop le chi ho tro: GET_PRODUCTS"
-                }, new JsonSerializerOptions { WriteIndented = true });
+                    message = "Loi server: " + ex.Message
+                });
             }
+        }
 
+        private static async Task<string> HandleGetProductManage()
+        {
             try
             {
                 using var context = _dbContextFactory.CreateDbContext();
 
+                var products = await context.Products
+                    .Include(p => p.Category)
+                    .Include(p => p.ProductImages)
+                    .Include(p => p.ProductVariants)
+                    .ToListAsync();
+
+                var data = products.Select(p => new
+                {
+                    p.ProductId,
+                    p.ProductName,
+                    p.Quantity,
+                    p.CategoryId,
+                    p.Description,
+
+                    Category = p.Category == null ? null : new
+                    {
+                        p.Category.CategoryId,
+                        p.Category.CategoryName
+                    },
+
+                    ProductImages = p.ProductImages.Select(img => new
+                    {
+                        img.ProductImageId,
+                        img.ImageUrl,
+                        img.IsMain
+                    }),
+
+                    ProductVariants = p.ProductVariants.Select(v => new
+                    {
+                        v.VariantId,
+                        v.Price
+                    })
+                }).ToList();
+
+                var responseObj = new
+                {
+                    success = true,
+                    command = "GET_PRODUCTS_MANAGE",
+                    count = data.Count,
+                    productManage = data,
+                    timestamp = DateTime.Now
+                };
+
+                return JsonSerializer.Serialize(responseObj, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Loi khi lay du lieu Product: {ex.Message}");
+
+                return JsonSerializer.Serialize(new
+                {
+                    success = false,
+                    message = "Loi server: " + ex.Message
+                });
+            }
+        }
+
+        private static async Task<string> HandleGetProducts()
+        {
+            try
+            {
+                using var context = _dbContextFactory.CreateDbContext();
               
                 var products = await context.Products
                     .Include(p => p.Category)

@@ -139,14 +139,105 @@ namespace ASP.Models.Domains
         }
 
 
+        //public IQueryable<Product> GetProducts(string? filter, int? categoryId)
+        //{
+        //    var query = _context.Products
+        //        .Include(p => p.Category)
+        //        .Include(p => p.ProductImages)
+        //        .Include(p => p.ProductVariants)
+        //        .AsQueryable();
+
+        //    if (!string.IsNullOrEmpty(filter))
+        //    {
+        //        query = query.Where(p => p.ProductName.Contains(filter));
+        //    }
+
+        //    if (categoryId != null && categoryId > 0)
+        //    {
+        //        query = query.Where(p => p.CategoryId == categoryId);
+        //    }
+
+        //    return query;
+        //}
+
         public IQueryable<Product> GetProducts(string? filter, int? categoryId)
         {
-            var query = _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.ProductImages)
-                .Include(p => p.ProductVariants)
-                .AsQueryable();
+            string host = "127.0.0.1";
+            int port = 5000;
 
+            List<Product> products = new List<Product>();
+
+            using (TcpClient client = new TcpClient(host, port))
+            using (NetworkStream stream = client.GetStream())
+            {
+                string command = "GET_PRODUCTS_MANAGE";
+                byte[] request = Encoding.UTF8.GetBytes(command);
+
+                stream.Write(request, 0, request.Length);
+
+                MemoryStream ms = new MemoryStream();
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+
+                while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    ms.Write(buffer, 0, bytesRead);
+
+                    if (!stream.DataAvailable)
+                        break;
+                }
+
+                string json = Encoding.UTF8.GetString(ms.ToArray());
+
+                if (bytesRead > 0)
+                {
+                    //string json = Encoding.UTF8.GetString(buffer, 0, bytesRead).Trim();
+
+                    var response = JsonSerializer.Deserialize<JsonResponse>(json,
+                        new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+
+                    if (response?.success == true && response.productManage != null)
+                    {
+                        foreach (var item in response.productManage)
+                        {
+                            var product = new Product
+                            {
+                                ProductId = item.ProductId,
+                                ProductName = item.ProductName,
+                                Quantity = item.Quantity,
+
+                                Category = item.Category == null ? null : new Category
+                                {
+                                    CategoryId = item.Category.CategoryId,
+                                    CategoryName = item.Category.CategoryName ?? ""
+                                },
+
+                                ProductImages = item.ProductImages?.Select(x => new ProductImage
+                                    {
+                                        ProductImageId = x.ProductImageId,
+                                        ImageUrl = x.ImageUrl ?? "",
+                                        IsMain = x.IsMain
+                                    }).ToList() ?? new List<ProductImage>(),
+
+                                ProductVariants = item.ProductVariants?.Select(v => new ProductVariant
+                                    {
+                                        VariantId = v.VariantId,
+                                        Price = v.Price
+                                        }).ToList() ?? new List<ProductVariant>()
+                                    };
+
+                            products.Add(product);
+                        }
+                    }
+                }
+            }
+
+            var query = products.AsQueryable();
+
+            // giữ nguyên logic filter như code cũ
             if (!string.IsNullOrEmpty(filter))
             {
                 query = query.Where(p => p.ProductName.Contains(filter));
@@ -154,7 +245,7 @@ namespace ASP.Models.Domains
 
             if (categoryId != null && categoryId > 0)
             {
-                query = query.Where(p => p.CategoryId == categoryId);
+                query = query.Where(p => p.Category != null && p.Category.CategoryId == categoryId);
             }
 
             return query;
@@ -204,6 +295,8 @@ namespace ASP.Models.Domains
         public string command { get; set; } = string.Empty;
         public int count { get; set; }
         public List<ProductDto> products { get; set; } = new();
+
+        public List<ProductManageDto> productManage { get; set; } = new();
         public DateTime timestamp { get; set; }
     }
 
@@ -215,5 +308,36 @@ namespace ASP.Models.Domains
         public decimal Price { get; set; }
         public string MainImage { get; set; } = string.Empty;
         public int Quantity { get; set; }
+    }
+
+    public class ProductManageDto
+    {
+        public int ProductId { get; set; }
+        public string? ProductName { get; set; }
+        public int Quantity { get; set; }
+        public int CategoryId { get; set; }
+
+        public CategoryDto? Category { get; set; }
+
+        public List<ProductImageDto>? ProductImages { get; set; }
+        public List<ProductVariantDto>? ProductVariants { get; set; }
+    }
+
+    public class ProductImageDto
+    {
+        public int ProductImageId { get; set; }
+        public string? ImageUrl { get; set; }
+        public bool IsMain { get; set; }
+    }
+
+    public class ProductVariantDto
+    {
+        public int VariantId { get; set; }
+        public decimal Price { get; set; }
+    }
+    public class CategoryDto
+    {
+        public int CategoryId { get; set; }
+        public string? CategoryName { get; set; }
     }
 }

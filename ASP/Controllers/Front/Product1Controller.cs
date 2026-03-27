@@ -40,15 +40,22 @@ namespace ASP.Controllers.Front
         }
 
         public IActionResult Index(
-           string? keyword,
-           int? category,
-           string? size,
-           string? color,
-           decimal? minPrice,
-           decimal? maxPrice,
-           string? sort)
+   string? keyword,
+   int? category,
+   string? size,
+   string? color,
+   decimal? minPrice,
+   decimal? maxPrice,
+   string? sort,
+   int page = 1)
         {
-            var query = _productRepository.QueryProducts();
+            const int pageSize = 9;
+
+            if (page < 1) page = 1;
+
+            var query = _productRepository.QueryProducts()
+                .Where(p => p.IsActive)
+                .Where(p => p.ProductVariants.Any(v => v.IsActive));
 
             if (!string.IsNullOrWhiteSpace(keyword))
             {
@@ -65,32 +72,36 @@ namespace ASP.Controllers.Front
 
             if (!string.IsNullOrWhiteSpace(size))
             {
-                query = query.Where(p => p.ProductVariants.Any(v => v.Size == size));
+                query = query.Where(p => p.ProductVariants.Any(v => v.IsActive && v.Size == size));
             }
 
             if (!string.IsNullOrWhiteSpace(color))
             {
-                query = query.Where(p => p.ProductVariants.Any(v => v.Color == color));
+                query = query.Where(p => p.ProductVariants.Any(v => v.IsActive && v.Color == color));
             }
 
             if (minPrice.HasValue)
             {
-                query = query.Where(p => p.ProductVariants.Any(v => v.Price >= minPrice.Value));
+                query = query.Where(p => p.ProductVariants.Any(v => v.IsActive && v.Price >= minPrice.Value));
             }
 
             if (maxPrice.HasValue)
             {
-                query = query.Where(p => p.ProductVariants.Any(v => v.Price <= maxPrice.Value));
+                query = query.Where(p => p.ProductVariants.Any(v => v.IsActive && v.Price <= maxPrice.Value));
             }
 
             switch (sort)
             {
                 case "price_asc":
-                    query = query.OrderBy(p => p.ProductVariants.Min(v => (decimal?)v.Price) ?? 0);
+                    query = query.OrderBy(p => p.ProductVariants
+                        .Where(v => v.IsActive)
+                        .Min(v => (decimal?)v.Price) ?? 0);
                     break;
 
                 case "price_desc":
-                    query = query.OrderByDescending(p => p.ProductVariants.Max(v => (decimal?)v.Price) ?? 0);
+                    query = query.OrderByDescending(p => p.ProductVariants
+                        .Where(v => v.IsActive)
+                        .Max(v => (decimal?)v.Price) ?? 0);
                     break;
 
                 case "newest":
@@ -98,16 +109,9 @@ namespace ASP.Controllers.Front
                     break;
 
                 case "popular":
-                    query = query
-                        .OrderByDescending(p => _context.OrderDetails
-                            .Where(od => od.ProductVariant.ProductId == p.ProductId)
-                            .Sum(od => (int?)od.Quantity) ?? 0);
-                    break;
-
-                case "order_count":
-                    query = query
-                        .OrderByDescending(p => _context.OrderDetails
-                            .Count(od => od.ProductVariant.ProductId == p.ProductId));
+                    query = query.OrderByDescending(p => _context.OrderDetails
+                        .Where(od => od.ProductVariant.ProductId == p.ProductId)
+                        .Sum(od => (int?)od.Quantity) ?? 0);
                     break;
 
                 default:
@@ -115,18 +119,31 @@ namespace ASP.Controllers.Front
                     break;
             }
 
-            var allProducts = query.ToList();
+            var totalItems = query.Count();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
-            var sizeOptions = allProducts
-                .SelectMany(p => p.ProductVariants ?? new List<ProductVariant>())
+            if (totalPages == 0) totalPages = 1;
+            if (page > totalPages) page = totalPages;
+
+            var products = query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var baseQueryForOptions = _productRepository.QueryProducts()
+                .Where(p => p.IsActive)
+                .Where(p => p.ProductVariants.Any(v => v.IsActive));
+
+            var sizeOptions = baseQueryForOptions
+                .SelectMany(p => p.ProductVariants.Where(v => v.IsActive))
                 .Where(v => !string.IsNullOrWhiteSpace(v.Size))
                 .Select(v => v.Size!)
                 .Distinct()
                 .OrderBy(x => x)
                 .ToList();
 
-            var colorOptions = allProducts
-                .SelectMany(p => p.ProductVariants ?? new List<ProductVariant>())
+            var colorOptions = baseQueryForOptions
+                .SelectMany(p => p.ProductVariants.Where(v => v.IsActive))
                 .Where(v => !string.IsNullOrWhiteSpace(v.Color))
                 .Select(v => v.Color!)
                 .Distinct()
@@ -144,7 +161,12 @@ namespace ASP.Controllers.Front
             ViewBag.SizeOptions = sizeOptions;
             ViewBag.ColorOptions = colorOptions;
 
-            return View("~/Views/Front/Products/Index.cshtml", allProducts);
+            ViewBag.CurrentPage = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+
+            return View("~/Views/Front/Products/Index.cshtml", products);
         }
 
         public async Task<IActionResult> Details(int id)

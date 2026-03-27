@@ -297,9 +297,16 @@
                 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4 product-grid">
                     @foreach (var product in Model)
                     {
-                        var price = product.ProductVariants?.FirstOrDefault()?.Price ?? 0m;
+                        var activeVariant = product.ProductVariants?
+                        .Where(v => v.IsActive)
+                        .OrderBy(v => v.VariantId)
+                        .FirstOrDefault();
+
+                        var price = activeVariant?.Price ?? 0m;
+
                         var mainImg = product.ProductImages?.FirstOrDefault(x => x.IsMain)
                         ?? product.ProductImages?.FirstOrDefault();
+
                         var imgUrl = mainImg?.ImageUrl ?? "/images/no-image.jpg";
 
                         <div class="col">
@@ -329,7 +336,7 @@
                                                 <i class="bi bi-search"></i>
                                             </a>
 
-                                            <button type="button"
+                                            @* <button type="button"
                                                     class="icon-btn cart-btn add-to-cart-btn"
                                                     data-variant-id="@(product.ProductVariants?.FirstOrDefault()?.VariantId ?? 0)"
                                                     data-product-name="@product.ProductName"
@@ -337,7 +344,7 @@
                                                     data-image="@(mainImg?.ImageUrl ?? "/images/no-image.jpg")"
                                                     title="Thêm vào giỏ">
                                                 <i class="bi bi-bag"></i>
-                                            </button>
+                                            </button> *@
                                         </div>
                                     </div>
                                 </div>
@@ -398,6 +405,65 @@
         </div>
     </div>
 </div>
+@if ((int)ViewBag.TotalPages > 1)
+{
+    <nav class="mt-5">
+        <ul class="pagination justify-content-center">
+
+            <li class="page-item @((int)ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-controller="Product1"
+                   asp-route-page="@((int)ViewBag.CurrentPage - 1)"
+                   asp-route-keyword="@ViewBag.Keyword"
+                   asp-route-category="@ViewBag.SelectedCategory"
+                   asp-route-size="@ViewBag.SelectedSize"
+                   asp-route-color="@ViewBag.SelectedColor"
+                   asp-route-minPrice="@ViewBag.MinPrice"
+                   asp-route-maxPrice="@ViewBag.MaxPrice"
+                   asp-route-sort="@ViewBag.Sort">
+                    «
+                </a>
+            </li>
+
+            @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == (int)ViewBag.CurrentPage ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-controller="Product1"
+                       asp-route-page="@i"
+                       asp-route-keyword="@ViewBag.Keyword"
+                       asp-route-category="@ViewBag.SelectedCategory"
+                       asp-route-size="@ViewBag.SelectedSize"
+                       asp-route-color="@ViewBag.SelectedColor"
+                       asp-route-minPrice="@ViewBag.MinPrice"
+                       asp-route-maxPrice="@ViewBag.MaxPrice"
+                       asp-route-sort="@ViewBag.Sort">
+                        @i
+                    </a>
+                </li>
+            }
+
+            <li class="page-item @((int)ViewBag.CurrentPage == (int)ViewBag.TotalPages ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-controller="Product1"
+                   asp-route-page="@((int)ViewBag.CurrentPage + 1)"
+                   asp-route-keyword="@ViewBag.Keyword"
+                   asp-route-category="@ViewBag.SelectedCategory"
+                   asp-route-size="@ViewBag.SelectedSize"
+                   asp-route-color="@ViewBag.SelectedColor"
+                   asp-route-minPrice="@ViewBag.MinPrice"
+                   asp-route-maxPrice="@ViewBag.MaxPrice"
+                   asp-route-sort="@ViewBag.Sort">
+                    »
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+}
 <style>
     .edit-btn {
         position: absolute;

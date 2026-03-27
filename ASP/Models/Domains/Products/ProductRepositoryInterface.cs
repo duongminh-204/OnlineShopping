@@ -1,4 +1,4 @@
-﻿namespace ASP.Models.Domains
+namespace ASP.Models.Domains
 {
     public interface ProductRepositoryInterface
     {
@@ -19,5 +19,7 @@
         bool HasImage(int productId);
 
         List<Category> GetCategories();
+
+        void RecalculateQuantity(int productId);
     }
 }

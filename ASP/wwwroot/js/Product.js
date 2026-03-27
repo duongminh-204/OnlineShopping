@@ -125,6 +125,15 @@ document.addEventListener('DOMContentLoaded', () => {
         mainImageUrl = dataEl.dataset.imageUrl || "/images/no-image.jpg";
 
         updateTotalPrice();
+        const qtyInput = document.getElementById('quantity');
+        if (qtyInput) {
+            qtyInput.addEventListener('input', () => {
+                if (parseInt(qtyInput.value) < 1 || isNaN(parseInt(qtyInput.value))) {
+                    qtyInput.value = 1;
+                }
+                updateTotalPrice();
+            });
+        }
 
         // Sự kiện chọn size (trang chi tiết)
         document.querySelectorAll('.size-btn').forEach(btn => {

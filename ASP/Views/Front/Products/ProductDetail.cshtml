@@ -6,8 +6,19 @@
 }
 
 <link rel="stylesheet" href="~/css/ProductDetail.css" />
-
+<!-- product data -->
+<div id="product-data"
+     data-price="@Model.CurrentPrice"
+     data-variant-id="@(Model.DefaultVariant?.VariantId ?? 0)"
+     data-name="@Model.Product.ProductName"
+     data-image-url="@Model.MainImageUrl">
+</div>
 <div class="container py-5" style="font-family: 'Roboto', sans-serif;">
+    <div class="mb-4">
+        <a asp-controller="Product1" asp-action="Index" class="btn btn-outline-secondary">
+            ← Quay lại sản phẩm
+        </a>
+    </div>
     <div class="row g-5">
         <!-- Left: Images -->
         <div class="col-lg-6">
@@ -78,7 +89,9 @@
                         <button type="button"
                                 class="btn btn-outline-dark size-btn @(isActive ? "active" : "")"
                                 data-size="@variant.Size"
-                                data-price="@variant.Price">
+                                data-price="@variant.Price"
+                                data-variant-id="@variant.VariantId"
+                                data-color="@variant.Color">
                             @variant.Size
                         </button>
                     }
@@ -104,6 +117,7 @@
 
             <!-- Actions -->
             <div class="actions d-flex flex-column flex-sm-row gap-3">
+                @Html.AntiForgeryToken()
                 <button class="btn btn-warning btn-lg flex-grow-1 fw-bold py-3" id="addToCart">
                     THÊM VÀO GIỎ HÀNG
                 </button>
@@ -120,5 +134,5 @@
 </div>
 
 @section Scripts {
-    <script > </script>
+    <script src="~/js/Product.js" asp-append-version="true"></script>
 }

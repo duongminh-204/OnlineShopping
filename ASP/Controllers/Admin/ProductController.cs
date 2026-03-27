@@ -62,6 +62,20 @@ namespace ASP.Controllers.Admin
             return View("~/Views/Admin/Product/Create.cshtml");
         }
 
+        [HttpGet]
+        [Route("get-categories")]
+        public IActionResult GetCategories()
+        {
+            var categories = _repo.GetCategories()
+                .Select(c => new
+                {
+                    c.CategoryId,
+                    c.CategoryName
+                });
+
+            return Json(categories);
+        }
+
 
         [HttpPost]
         [Route("create")]

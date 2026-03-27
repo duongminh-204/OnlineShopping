@@ -226,10 +226,94 @@ function setupClearCart() {
     });
 }
 
+//hàm lấy danh sách productId hiện có trong cart
+function getCartProductIds() {
+    return Array.from(document.querySelectorAll("tbody tr"))
+        .map(row => parseInt(row.dataset.productId))
+        .filter(id => !isNaN(id) && id > 0);
+}
+
+//hàm lấy danh sách variantId hiện có trong cart
+function getCartVariantIds() {
+    return Array.from(document.querySelectorAll("tbody tr"))
+        .map(row => parseInt(row.dataset.variantId))
+        .filter(id => !isNaN(id) && id > 0);
+}
+
+let cartReloading = false;
+function reloadCartIfNeeded() {
+    if (cartReloading) return;
+    cartReloading = true;
+
+    setTimeout(() => {
+        location.reload();
+    }, 300);
+}
+
+//kết nối tới AdminHub
+function setupCartSignalR() {
+    if (typeof signalR === "undefined") {
+        console.error("signalR chưa được load");
+        return;
+    }
+
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/adminHub")
+        .withAutomaticReconnect()
+        .build();
+
+    connection.start()
+        .then(() => {
+            console.log("SignalR connected (Cart)");
+        })
+        .catch(err => {
+            console.error("SignalR connection error:", err);
+        });
+
+    connection.on("ProductUpdated", function (productId) {
+        console.log("ProductUpdated:", productId);
+
+        const productIds = getCartProductIds();
+        if (productIds.includes(productId)) {
+            reloadCartIfNeeded();
+        }
+    });
+
+    connection.on("ProductImageUpdated", function (productId) {
+        console.log("ProductImageUpdated:", productId);
+
+        const productIds = getCartProductIds();
+        if (productIds.includes(productId)) {
+            reloadCartIfNeeded();
+        }
+    });
+
+    connection.on("VariantUpdated", function (variant) {
+        console.log("VariantUpdated:", variant);
+
+        const variantIds = getCartVariantIds();
+
+        if (variant && variantIds.includes(variant.variantId)) {
+            reloadCartIfNeeded();
+        }
+    });
+
+    connection.on("VariantDeleted", function (variantId, productId) {
+        console.log("VariantDeleted:", variantId, productId);
+
+        const variantIds = getCartVariantIds();
+        const productIds = getCartProductIds();
+
+        if (variantIds.includes(variantId) || productIds.includes(productId)) {
+            reloadCartIfNeeded();
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-   
-    updateCartTotal();          
-    setupQuantityButtons();   
-    setupRemoveItem();   
+    updateCartTotal();
+    setupQuantityButtons();
+    setupRemoveItem();
     setupClearCart();
+    setupCartSignalR();
 });

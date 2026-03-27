@@ -50,7 +50,10 @@
                         var product = variant?.Product;
                         var price = variant?.Price ?? 0;
 
-                       <tr data-price="@price" data-cartitem-id="@item.CartItemId">
+                        <tr data-price="@price"
+                            data-cartitem-id="@item.CartItemId"
+                            data-product-id="@(product?.ProductId ?? 0)"
+                            data-variant-id="@(variant?.VariantId ?? 0)">
 
                             <td>
 
@@ -165,4 +168,5 @@
     }
 
 </div>
+<script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
 <script src="~/js/Cart.js" asp-append-version="true"></script>

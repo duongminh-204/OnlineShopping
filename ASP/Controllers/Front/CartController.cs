@@ -27,7 +27,7 @@ namespace ASP.Controllers.Front
             return User.FindFirstValue(ClaimTypes.NameIdentifier);
         }
 
-      
+
         public async Task<IActionResult> Index()
         {
             var userId = GetUserId();
@@ -40,7 +40,16 @@ namespace ASP.Controllers.Front
             if (cart == null)
                 return Content("Cart is empty");
 
-            ViewBag.CartItemCount = cart.CartItems?.Sum(ci => ci.Quantity) ?? 0;
+            cart.CartItems = cart.CartItems?
+                .Where(ci =>
+                    ci.ProductVariant != null &&
+                    ci.ProductVariant.IsActive &&
+                    ci.ProductVariant.Product != null &&
+                    ci.ProductVariant.Product.IsActive)
+                .ToList()
+                ?? new List<CartItem>();
+
+            ViewBag.CartItemCount = cart.CartItems.Sum(ci => ci.Quantity);
 
             return View("~/Views/Front/Carts/Index.cshtml", cart);
         }
@@ -113,7 +122,16 @@ namespace ASP.Controllers.Front
 
             var cart = await _cartRepo.GetCartWithItemsAsync(userId);
 
-            int count = cart?.CartItems?.Sum(i => i.Quantity) ?? 0;
+            var activeItems = cart?.CartItems?
+                .Where(ci =>
+                    ci.ProductVariant != null &&
+                    ci.ProductVariant.IsActive &&
+                    ci.ProductVariant.Product != null &&
+                    ci.ProductVariant.Product.IsActive)
+                .ToList()
+                ?? new List<CartItem>();
+
+            int count = activeItems.Sum(i => i.Quantity);
 
             return Json(count);
         }
@@ -169,6 +187,12 @@ namespace ASP.Controllers.Front
 
             if (item == null)
                 return BadRequest(new { message = "Không tìm thấy sản phẩm trong giỏ" });
+
+            if (item.ProductVariant == null || !item.ProductVariant.IsActive ||
+                item.ProductVariant.Product == null || !item.ProductVariant.Product.IsActive)
+            {
+                return BadRequest(new { message = "Sản phẩm này hiện không còn khả dụng" });
+            }
 
             await _cartItemRepo.UpdateQuantityAsync(model.CartItemId, model.Quantity);
             await _cartRepo.SaveChangesAsync();

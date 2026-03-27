@@ -61,7 +61,7 @@ namespace ASP.Controllers.Admin
 
             var fileName = imageName + extension;
 
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/productImage");
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/products");
 
             if (!Directory.Exists(folderPath))
             {
@@ -89,7 +89,7 @@ namespace ASP.Controllers.Admin
             var img = new ProductImage
             {
                 ProductId = productId,
-                ImageUrl = "/images/productImage/" + fileName,
+                ImageUrl = "/images/products/" + fileName,
                 IsMain = !hasMain
             };
 

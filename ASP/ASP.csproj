@@ -85,6 +85,7 @@
     <Folder Include="wwwroot\assets\ckgallery\" />
     <Folder Include="wwwroot\ExportExcel\" />
     <Folder Include="wwwroot\FileDownload\" />
+    <Folder Include="wwwroot\images\products\" />
   </ItemGroup>
 
   <!-- Resource files -->

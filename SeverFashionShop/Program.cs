@@ -168,7 +168,7 @@ namespace ASP.ProductServer
                     p.CategoryId,
                     p.Description,
 
-                    Category = p.Category == null ? null : new
+                    Category = new
                     {
                         p.Category.CategoryId,
                         p.Category.CategoryName

@@ -209,20 +209,20 @@ namespace ASP.Models.Domains
                                 ProductName = item.ProductName,
                                 Quantity = item.Quantity,
 
-                                Category = item.Category == null ? null : new Category
+                                Category = new Category
                                 {
                                     CategoryId = item.Category.CategoryId,
                                     CategoryName = item.Category.CategoryName ?? ""
                                 },
 
-                                ProductImages = item.ProductImages?.Select(x => new ProductImage
+                                ProductImages = item.ProductImages.Select(x => new ProductImage
                                     {
                                         ProductImageId = x.ProductImageId,
                                         ImageUrl = x.ImageUrl ?? "",
                                         IsMain = x.IsMain
                                     }).ToList() ?? new List<ProductImage>(),
 
-                                ProductVariants = item.ProductVariants?.Select(v => new ProductVariant
+                                ProductVariants = item.ProductVariants.Select(v => new ProductVariant
                                     {
                                         VariantId = v.VariantId,
                                         Price = v.Price
@@ -317,10 +317,10 @@ namespace ASP.Models.Domains
         public int Quantity { get; set; }
         public int CategoryId { get; set; }
 
-        public CategoryDto? Category { get; set; }
+        public CategoryDto Category { get; set; }
 
-        public List<ProductImageDto>? ProductImages { get; set; }
-        public List<ProductVariantDto>? ProductVariants { get; set; }
+        public List<ProductImageDto> ProductImages { get; set; } = new();
+        public List<ProductVariantDto> ProductVariants { get; set; } = new();
     }
 
     public class ProductImageDto

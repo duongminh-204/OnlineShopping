@@ -527,5 +527,34 @@
             console.log("Product image updated → reload");
             location.reload();
         });
+
+        connection.on("VariantCreated", function (data) {
+            console.log("VariantCreated:", data);
+            location.reload();
+        });
+
+        connection.on("VariantUpdated", function (data) {
+            console.log("VariantUpdated:", data);
+            location.reload();
+        });
+
+        connection.on("VariantUpdated", function (data) {
+            console.log("VariantUpdated:", data);
+            location.reload();
+        });
+
+        connection.on("VariantDeleted", function (variantId, productId) {
+
+            console.log("VariantDeleted:", variantId, productId);
+
+            const row = document.querySelector(`[data-product-id='${productId}']`);
+
+            if (row) {
+             console.log("Variant belongs to product in this page → reload");
+             location.reload();
+             }
+
+        });
+
     </script>
 }

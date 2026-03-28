@@ -1,4 +1,4 @@
-﻿using ASP.Models.Domains;
+using ASP.Models.Domains;
 using ASP.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore; 
@@ -49,7 +49,7 @@ namespace ASP.Controllers.Front
    string? sort,
    int page = 1)
         {
-            const int pageSize = 9;
+            const int pageSize = 20;
 
             if (page < 1) page = 1;
 
@@ -128,6 +128,7 @@ namespace ASP.Controllers.Front
             var products = query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
+                .OrderByDescending(p => p.ProductId)
                 .ToList();
 
             var baseQueryForOptions = _productRepository.QueryProducts()
@@ -314,7 +315,7 @@ namespace ASP.Controllers.Front
         [Authorize(Roles = "Admin")]
         public IActionResult ExportProductsToExcel()
         {
-            var products = _productRepository.GetAllProducts();
+            var products = _productRepository.GetAllProducts1();
 
             using (var package = new ExcelPackage())
             {

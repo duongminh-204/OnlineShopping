@@ -1,4 +1,4 @@
-﻿@using ASP.Models.Domains
+@using ASP.Models.Domains
 @using ASP.Controllers.Front
 @model IEnumerable<Product>
 @inject CategoryRepositoryInterface CategoryRepo
@@ -294,145 +294,168 @@
             }
             else
             {
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4 product-grid">
-                    @foreach (var product in Model)
-                    {
-                        var activeVariant = product.ProductVariants?
-                        .Where(v => v.IsActive)
-                        .OrderByDescending(v => v.VariantId)
-                        .FirstOrDefault();
+                <div class="card shadow-sm rounded-4 border-0 overflow-hidden">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="bi bi-table me-2"></i>Danh sách sản phẩm</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center" style="width: 80px;">#</th>
+                                    <th style="width: 100px;">Ảnh</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Danh mục</th>
+                                    <th class="text-end">Giá</th>
+                                    <th class="text-center">Size / Màu</th>
+                                    <th class="text-center">Trạng thái</th>
+                                    <th class="text-center" style="width: 150px;">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    int stt = 0;
+                                }
+                                @foreach (var product in Model)
+                                {
+                                    stt++;
+                                    var activeVariants = product.ProductVariants?
+                                        .Where(v => v.IsActive)
+                                        .OrderBy(v => v.VariantId)
+                                        .ToList();
 
-                        var price = activeVariant?.Price ?? 0m;
-
-                        var mainImg = product.ProductImages?.FirstOrDefault(x => x.IsMain)
-                        ?? product.ProductImages?.FirstOrDefault();
-
-                        var imgUrl = mainImg?.ImageUrl ?? "/images/no-image.jpg";
-
-                        <div class="col">
-                            <div class="card product-card h-100 border-0 shadow rounded-4">
-                                <div class="image-wrapper position-relative">
-
-                                    <img src="@imgUrl"
-                                         class="card-img-top"
-                                         alt="@product.ProductName"
-                                         loading="lazy">
-
-                                    @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
-                                    {
-                                        <label class="icon-btn edit-btn">
-                                            <i class="bi bi-pencil-square"></i>
-                                            <input type="file"
-                                                   class="d-none change-image-input"
-                                                   data-product-id="@product.ProductId"
-                                                   accept="image/*">
-                                        </label>
-                                    }
-
-                                    <div class="image-overlay">
-                                        <div class="overlay-buttons d-flex justify-content-center gap-3">
+                                    var price = activeVariants?.FirstOrDefault()?.Price ?? 0m;
+                                    var mainImg = product.ProductImages?.FirstOrDefault(x => x.IsMain)
+                                        ?? product.ProductImages?.FirstOrDefault();
+                                    var imgUrl = mainImg?.ImageUrl ?? "/images/no-image.jpg";
+                                    var sizes = activeVariants?.Select(v => v.Size).Distinct().ToList();
+                                    var colors = activeVariants?.Select(v => v.Color).Distinct().ToList();
+                                    var isActive = product.IsActive;
+                                    var hasStock = activeVariants?.Any(v => v.QuantityVariants > 0) ?? false;
+                                    <tr>
+                                        <td class="text-center fw-semibold">@product.ProductId</td>
+                                        <td>
+                                            <img src="@imgUrl"
+                                                 alt="@product.ProductName"
+                                                 class="rounded"
+                                                 style="width: 70px; height: 70px; object-fit: cover;">
+                                        </td>
+                                        <td>
                                             <a asp-action="Details" asp-controller="Product1" asp-route-id="@product.ProductId"
-                                               class="icon-btn view-btn" title="Xem chi tiết">
-                                                <i class="bi bi-search"></i>
+                                               class="text-decoration-none fw-semibold text-dark">
+                                                @product.ProductName
                                             </a>
-
-                                            @* <button type="button"
-                                                    class="icon-btn cart-btn add-to-cart-btn"
-                                                    data-variant-id="@(product.ProductVariants?.FirstOrDefault()?.VariantId ?? 0)"
-                                                    data-product-name="@product.ProductName"
-                                                    data-price="@(product.ProductVariants?.FirstOrDefault()?.Price ?? 0m)"
-                                                    data-image="@(mainImg?.ImageUrl ?? "/images/no-image.jpg")"
-                                                    title="Thêm vào giỏ">
-                                                <i class="bi bi-bag"></i>
-                                            </button> *@
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="card-body text-center">
-                                    <h5 class="card-title product-title mb-2">@product.ProductName</h5>
-                                    <p class="product-price mb-0">
-                                        @if (price > 0)
-                                        {
-                                            <span>@price.ToString("N0")</span>
-
-                                            <small> đ</small>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">Liên hệ</span>
-                                        }
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    }
+                                            @if (!string.IsNullOrEmpty(product.Description) && product.Description.Length > 50)
+                                            {
+                                                <br><small class="text-muted">@product.Description.Substring(0, 50)...</small>
+                                            }
+                                            else if (!string.IsNullOrEmpty(product.Description))
+                                            {
+                                                <br><small class="text-muted">@product.Description</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">@product.Category?.CategoryName</span>
+                                        </td>
+                                        <td class="text-end fw-semibold text-danger">
+                                            @if (price > 0)
+                                            {
+                                                @price.ToString("N0") <small>đ</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Liên hệ</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex flex-wrap justify-content-center gap-1">
+                                                @if (sizes != null && sizes.Any())
+                                                {
+                                                    @foreach (var size in sizes.Take(3))
+                                                    {
+                                                        <span class="badge bg-primary">@size</span>
+                                                    }
+                                                    @if (sizes.Count > 3)
+                                                    {
+                                                        <span class="badge bg-secondary">+@(sizes.Count - 3)</span>
+                                                    }
+                                                }
+                                            </div>
+                                            <div class="d-flex flex-wrap justify-content-center gap-1 mt-1">
+                                                @if (colors != null && colors.Any())
+                                                {
+                                                    @foreach (var color in colors.Take(3))
+                                                    {
+                                                        <span class="badge bg-info text-dark">@color</span>
+                                                    }
+                                                    @if (colors.Count > 3)
+                                                    {
+                                                        <span class="badge bg-secondary">+@(colors.Count - 3)</span>
+                                                    }
+                                                }
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            @if (isActive)
+                                            {
+                                                <span class="badge bg-success">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">Inactive</span>
+                                            }
+                                            @if (hasStock)
+                                            {
+                                                <br><small class="text-success"><i class="bi bi-check-circle me-1"></i>Còn hàng</small>
+                                            }
+                                            else
+                                            {
+                                                <br><small class="text-danger"><i class="bi bi-x-circle me-1"></i>Hết hàng</small>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm">
+                                                <a asp-action="Details" asp-controller="Product1" asp-route-id="@product.ProductId"
+                                                   class="btn btn-outline-primary" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                                                {
+                                                    <a asp-action="Edit" asp-controller="Product" asp-route-id="@product.ProductId"
+                                                       class="btn btn-outline-warning" title="Sửa">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <a asp-controller="ProductImage" asp-action="Index" asp-route-productId="@product.ProductId"
+                                                       class="btn btn-outline-info" title="Hình ảnh">
+                                                        <i class="bi bi-image"></i>
+                                                    </a>
+                                                    <a asp-controller="ProductVariant" asp-action="Index" asp-route-productId="@product.ProductId"
+                                                       class="btn btn-outline-dark" title="Biến thể">
+                                                        <i class="bi bi-box-seam"></i>
+                                                    </a>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             }
         </div>
     </div>
 
-    <!-- Success modal -->
-    <div class="modal fade" id="addToCartSuccessModal" tabindex="-1" aria-labelledby="addToCartModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4 shadow">
-                <div class="modal-header bg-success text-white rounded-top-4">
-                    <h5 class="modal-title" id="addToCartModalLabel">
-                        <i class="bi bi-check-circle-fill me-2"></i>Thêm vào giỏ hàng thành công!
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center py-4">
-                    <img id="modalProductImage" src="" alt="Sản phẩm" class="img-fluid rounded mb-3" style="max-height: 180px; object-fit: contain;">
-                    <h5 id="modalProductName" class="mb-3"></h5>
-                    <p class="mb-2">
-                        Size: <strong id="modalSize">-</strong>
-                        × <strong id="modalQuantity">1</strong>
-                    </p>
-                    <p class="text-danger fw-bold fs-5 mb-0">
-                        <span id="modalPrice">0</span> đ
-                    </p>
-                </div>
-                <div class="modal-footer justify-content-center border-0 pb-4">
-                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
-                        Tiếp tục mua sắm
-                    </button>
-                    <a href="@Url.Action("Index", "Cart")" class="btn btn-primary px-4">
-                        <i class="bi bi-cart-check me-2"></i>Xem giỏ hàng
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-@if ((int)ViewBag.TotalPages > 1)
-{
-    <nav class="mt-5">
-        <ul class="pagination justify-content-center">
+    @if ((int)ViewBag.TotalPages > 1)
+    {
+        <nav class="mt-5">
+            <ul class="pagination justify-content-center">
 
-            <li class="page-item @((int)ViewBag.CurrentPage == 1 ? "disabled" : "")">
-                <a class="page-link"
-                   asp-action="Index"
-                   asp-controller="Product1"
-                   asp-route-page="@((int)ViewBag.CurrentPage - 1)"
-                   asp-route-keyword="@ViewBag.Keyword"
-                   asp-route-category="@ViewBag.SelectedCategory"
-                   asp-route-size="@ViewBag.SelectedSize"
-                   asp-route-color="@ViewBag.SelectedColor"
-                   asp-route-minPrice="@ViewBag.MinPrice"
-                   asp-route-maxPrice="@ViewBag.MaxPrice"
-                   asp-route-sort="@ViewBag.Sort">
-                    «
-                </a>
-            </li>
-
-            @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
-            {
-                <li class="page-item @(i == (int)ViewBag.CurrentPage ? "active" : "")">
+                <li class="page-item @((int)ViewBag.CurrentPage == 1 ? "disabled" : "")">
                     <a class="page-link"
                        asp-action="Index"
                        asp-controller="Product1"
-                       asp-route-page="@i"
+                       asp-route-page="@((int)ViewBag.CurrentPage - 1)"
                        asp-route-keyword="@ViewBag.Keyword"
                        asp-route-category="@ViewBag.SelectedCategory"
                        asp-route-size="@ViewBag.SelectedSize"
@@ -440,51 +463,54 @@
                        asp-route-minPrice="@ViewBag.MinPrice"
                        asp-route-maxPrice="@ViewBag.MaxPrice"
                        asp-route-sort="@ViewBag.Sort">
-                        @i
+                        «
                     </a>
                 </li>
-            }
 
-            <li class="page-item @((int)ViewBag.CurrentPage == (int)ViewBag.TotalPages ? "disabled" : "")">
-                <a class="page-link"
-                   asp-action="Index"
-                   asp-controller="Product1"
-                   asp-route-page="@((int)ViewBag.CurrentPage + 1)"
-                   asp-route-keyword="@ViewBag.Keyword"
-                   asp-route-category="@ViewBag.SelectedCategory"
-                   asp-route-size="@ViewBag.SelectedSize"
-                   asp-route-color="@ViewBag.SelectedColor"
-                   asp-route-minPrice="@ViewBag.MinPrice"
-                   asp-route-maxPrice="@ViewBag.MaxPrice"
-                   asp-route-sort="@ViewBag.Sort">
-                    »
-                </a>
-            </li>
+                @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(i == (int)ViewBag.CurrentPage ? "active" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-controller="Product1"
+                           asp-route-page="@i"
+                           asp-route-keyword="@ViewBag.Keyword"
+                           asp-route-category="@ViewBag.SelectedCategory"
+                           asp-route-size="@ViewBag.SelectedSize"
+                           asp-route-color="@ViewBag.SelectedColor"
+                           asp-route-minPrice="@ViewBag.MinPrice"
+                           asp-route-maxPrice="@ViewBag.MaxPrice"
+                           asp-route-sort="@ViewBag.Sort">
+                            @i
+                        </a>
+                    </li>
+                }
 
-        </ul>
-    </nav>
-}
-<style>
-    .edit-btn {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        opacity: 0;
-        transition: 0.2s;
-        z-index: 20
+                <li class="page-item @((int)ViewBag.CurrentPage == (int)ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-controller="Product1"
+                       asp-route-page="@((int)ViewBag.CurrentPage + 1)"
+                       asp-route-keyword="@ViewBag.Keyword"
+                       asp-route-category="@ViewBag.SelectedCategory"
+                       asp-route-size="@ViewBag.SelectedSize"
+                       asp-route-color="@ViewBag.SelectedColor"
+                       asp-route-minPrice="@ViewBag.MinPrice"
+                       asp-route-maxPrice="@ViewBag.MaxPrice"
+                       asp-route-sort="@ViewBag.Sort">
+                        »
+                    </a>
+                </li>
+
+            </ul>
+        </nav>
     }
+</div>
 
-    .product-card:hover .edit-btn {
-        opacity: 1;
-    }
-</style>
 @section Scripts {
-    <script src="~/js/Product.js" asp-append-version="true"></script>
-
     <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
 
     <script>
-
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/adminHub")
             .build();
@@ -494,25 +520,12 @@
             .catch(err => console.error(err));
 
         connection.on("ProductUpdated", function (productId) {
-
             console.log("ProductUpdated:", productId);
-             location.reload();
-
-            // const productCard = document.querySelector(`[data-product-id="${productId}"]`);
-
-            // if (productCard) {
-            //     console.log("Product in current page → reload");
-               
-            // }
-
+            location.reload();
         });
         connection.on("ProductImageUpdated", (productId) => {
-            
-             console.log("Product image updated → reload");
-             location.reload();
-            
+            console.log("Product image updated → reload");
+            location.reload();
         });
-
-
     </script>
 }

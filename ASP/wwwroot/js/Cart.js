@@ -242,8 +242,8 @@ function getCartVariantIds() {
 
 let cartReloading = false;
 function reloadCartIfNeeded() {
-    if (cartReloading) return;
-    cartReloading = true;
+    //if (cartReloading) return;
+    //cartReloading = true;
 
     setTimeout(() => {
         location.reload();

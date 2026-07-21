@@ -1,4 +1,4 @@
-﻿@{
+@{
     @model IEnumerable<ASP.Models.Admin.Menus.MenuDetail>
     string controller = ViewContext.RouteData.Values["Controller"].ToString();
     string action = ViewContext.RouteData.Values["Action"].ToString();
@@ -208,6 +208,12 @@
                             }
                         </li>
                     }
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Order" asp-action="History"><i class="fas fa-box-open me-2"></i>Order History</a>
+                        </li>
+                    }
                 </ul>
                 <!-- Menu bên phải -->
                 <ul class="navbar-nav ms-auto">
@@ -234,8 +240,10 @@
                                         <i class="fas fa-user me-1"></i> View Profile
                                     </a>
                                 </li>
-                                <li><a class="dropdown-item" href="~/admin"><i class="fas fa-cog me-1"></i> Admin page</a></li>
-                                <li><a class="dropdown-item" asp-controller="Order" asp-action="History"><i class="fas fa-sign-out-alt me-1"></i> Order History</a></li>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <li><a class="dropdown-item" href="~/admin"><i class="fas fa-cog me-1"></i> Admin page</a></li>
+                                }
                                 <li><a class="dropdown-item" asp-route="admin.auth.logout"><i class="fas fa-sign-out-alt me-1"></i> Logout</a></li>
                             </ul>
                         </li>
@@ -250,7 +258,9 @@
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title">User Profile</h5>
+                <h5 class="modal-title">
+                    <i class="bi bi-person-circle me-2"></i> Hồ sơ cá nhân
+                </h5>
                 <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 

@@ -1,4 +1,4 @@
-﻿using ASP.Hubs;
+using ASP.Hubs;
 using ASP.Models.ASPModel;
 using ASP.Models.Domains;
 using ASP.Models.ViewModels;
@@ -45,7 +45,10 @@ namespace ASP.Controllers.Front
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Add(CheckoutViewModel model)
         {
-            
+            if (!ModelState.IsValid)
+            {
+                return View("~/Views/Front/Checkout/AddAddress.cshtml", model);
+            }
 
             var newAddress = model.Address;
 

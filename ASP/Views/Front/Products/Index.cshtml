@@ -294,153 +294,125 @@
             }
             else
             {
-                <div class="card shadow-sm rounded-4 border-0 overflow-hidden">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0"><i class="bi bi-table me-2"></i>Danh sách sản phẩm</h5>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="text-center" style="width: 80px;">#</th>
-                                    <th style="width: 100px;">Ảnh</th>
-                                    <th>Tên sản phẩm</th>
-                                    <th>Danh mục</th>
-                                    <th class="text-end">Giá</th>
-                                    <th class="text-center">Size / Màu</th>
-                                    <th class="text-center">Trạng thái</th>
-                                    <th class="text-center" style="width: 150px;">Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @{
-                                    int stt = 0;
-                                }
-                                @foreach (var product in Model)
-                                {
-                                    stt++;
-                                    var activeVariants = product.ProductVariants?
-                                        .Where(v => v.IsActive)
-                                        .OrderBy(v => v.VariantId)
-                                        .ToList();
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+                    @foreach (var product in Model)
+                    {
+                        var activeVariants = product.ProductVariants?
+                            .Where(v => v.IsActive)
+                            .OrderBy(v => v.VariantId)
+                            .ToList();
 
-                                    var price = activeVariants?.FirstOrDefault()?.Price ?? 0m;
-                                    var mainImg = product.ProductImages?.FirstOrDefault(x => x.IsMain)
-                                        ?? product.ProductImages?.FirstOrDefault();
-                                    var imgUrl = mainImg?.ImageUrl ?? "/images/no-image.jpg";
-                                    var sizes = activeVariants?.Select(v => v.Size).Distinct().ToList();
-                                    var colors = activeVariants?.Select(v => v.Color).Distinct().ToList();
-                                    var isActive = product.IsActive;
-                                    var hasStock = activeVariants?.Any(v => v.QuantityVariants > 0) ?? false;
-                                    <tr>
-                                        <td class="text-center fw-semibold">@product.ProductId</td>
-                                        <td>
-                                            <img src="@imgUrl"
-                                                 alt="@product.ProductName"
-                                                 class="rounded"
-                                                 style="width: 70px; height: 70px; object-fit: cover;">
-                                        </td>
-                                        <td>
-                                            <a asp-action="Details" asp-controller="Product1" asp-route-id="@product.ProductId"
-                                               class="text-decoration-none fw-semibold text-dark">
-                                                @product.ProductName
-                                            </a>
-                                            @if (!string.IsNullOrEmpty(product.Description) && product.Description.Length > 50)
-                                            {
-                                                <br><small class="text-muted">@product.Description.Substring(0, 50)...</small>
-                                            }
-                                            else if (!string.IsNullOrEmpty(product.Description))
-                                            {
-                                                <br><small class="text-muted">@product.Description</small>
-                                            }
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-secondary">@product.Category?.CategoryName</span>
-                                        </td>
-                                        <td class="text-end fw-semibold text-danger">
+                        var price = activeVariants?.FirstOrDefault()?.Price ?? 0m;
+                        var mainImg = product.ProductImages?.FirstOrDefault(x => x.IsMain)
+                            ?? product.ProductImages?.FirstOrDefault();
+                        var imgUrl = mainImg?.ImageUrl ?? "/images/no-image.jpg";
+                        var sizes = activeVariants?.Select(v => v.Size).Distinct().ToList();
+                        var colors = activeVariants?.Select(v => v.Color).Distinct().ToList();
+                        var isActive = product.IsActive;
+                        var hasStock = activeVariants?.Any(v => v.QuantityVariants > 0) ?? false;
+
+                        <div class="col">
+                            <div class="card h-100 shadow-sm border-0 product-card rounded-4 overflow-hidden position-relative">
+                                <!-- Badges overlay -->
+                                <div class="position-absolute top-0 start-0 p-2 z-1">
+                                    @if (!hasStock)
+                                    {
+                                        <span class="badge bg-danger shadow-sm">Hết hàng</span>
+                                    }
+                                    else if (!isActive)
+                                    {
+                                        <span class="badge bg-secondary shadow-sm">Ngừng bán</span>
+                                    }
+                                </div>
+                                @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                                {
+                                    <div class="position-absolute top-0 end-0 p-2 z-1">
+                                        <div class="dropdown">
+                                            <button class="btn btn-light btn-sm rounded-circle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-gear"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                                <li>
+                                                    <a class="dropdown-item" asp-action="Edit" asp-controller="Product" asp-route-id="@product.ProductId">
+                                                        <i class="bi bi-pencil me-2"></i>Sửa sản phẩm
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" asp-controller="ProductImage" asp-action="Index" asp-route-productId="@product.ProductId">
+                                                        <i class="bi bi-image me-2"></i>Hình ảnh
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" asp-controller="ProductVariant" asp-action="Index" asp-route-productId="@product.ProductId">
+                                                        <i class="bi bi-box-seam me-2"></i>Biến thể
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                }
+                                
+                                <!-- Product Image -->
+                                <a asp-action="Details" asp-controller="Product1" asp-route-id="@product.ProductId" class="d-block overflow-hidden" style="aspect-ratio: 4/5;">
+                                    <img src="@imgUrl" class="card-img-top w-100 h-100 object-fit-cover product-img transition-scale" alt="@product.ProductName">
+                                </a>
+
+                                <!-- Product Info -->
+                                <div class="card-body d-flex flex-column">
+                                    <div class="mb-2 text-muted small">@product.Category?.CategoryName</div>
+                                    
+                                    <h6 class="card-title fw-bold text-truncate mb-2">
+                                        <a asp-action="Details" asp-controller="Product1" asp-route-id="@product.ProductId" class="text-decoration-none text-dark">
+                                            @product.ProductName
+                                        </a>
+                                    </h6>
+                                    
+                                    <div class="d-flex justify-content-between align-items-end mt-auto">
+                                        <div class="fw-bold text-danger fs-5">
                                             @if (price > 0)
                                             {
                                                 @price.ToString("N0") <small>đ</small>
                                             }
                                             else
                                             {
-                                                <span class="text-muted">Liên hệ</span>
+                                                <span class="text-muted fs-6">Liên hệ</span>
                                             }
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="d-flex flex-wrap justify-content-center gap-1">
-                                                @if (sizes != null && sizes.Any())
+                                        </div>
+                                    </div>
+
+                                    <!-- Variants info -->
+                                    <div class="mt-3 pt-3 border-top">
+                                        <div class="d-flex flex-wrap gap-1 mb-2">
+                                            @if (sizes != null && sizes.Any())
+                                            {
+                                                @foreach (var size in sizes.Take(4))
                                                 {
-                                                    @foreach (var size in sizes.Take(3))
-                                                    {
-                                                        <span class="badge bg-primary">@size</span>
-                                                    }
-                                                    @if (sizes.Count > 3)
-                                                    {
-                                                        <span class="badge bg-secondary">+@(sizes.Count - 3)</span>
-                                                    }
+                                                    <span class="badge border text-dark bg-light px-2 py-1">@size</span>
                                                 }
-                                            </div>
-                                            <div class="d-flex flex-wrap justify-content-center gap-1 mt-1">
-                                                @if (colors != null && colors.Any())
+                                                @if (sizes.Count > 4)
                                                 {
-                                                    @foreach (var color in colors.Take(3))
-                                                    {
-                                                        <span class="badge bg-info text-dark">@color</span>
-                                                    }
-                                                    @if (colors.Count > 3)
-                                                    {
-                                                        <span class="badge bg-secondary">+@(colors.Count - 3)</span>
-                                                    }
+                                                    <span class="badge border text-dark bg-light px-2 py-1">...</span>
                                                 }
-                                            </div>
-                                        </td>
-                                        <td class="text-center">
-                                            @if (isActive)
-                                            {
-                                                <span class="badge bg-success">Active</span>
                                             }
-                                            else
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @if (colors != null && colors.Any())
                                             {
-                                                <span class="badge bg-danger">Inactive</span>
-                                            }
-                                            @if (hasStock)
-                                            {
-                                                <br><small class="text-success"><i class="bi bi-check-circle me-1"></i>Còn hàng</small>
-                                            }
-                                            else
-                                            {
-                                                <br><small class="text-danger"><i class="bi bi-x-circle me-1"></i>Hết hàng</small>
-                                            }
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="btn-group btn-group-sm">
-                                                <a asp-action="Details" asp-controller="Product1" asp-route-id="@product.ProductId"
-                                                   class="btn btn-outline-primary" title="Xem chi tiết">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                                @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                                                @foreach (var color in colors.Take(4))
                                                 {
-                                                    <a asp-action="Edit" asp-controller="Product" asp-route-id="@product.ProductId"
-                                                       class="btn btn-outline-warning" title="Sửa">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </a>
-                                                    <a asp-controller="ProductImage" asp-action="Index" asp-route-productId="@product.ProductId"
-                                                       class="btn btn-outline-info" title="Hình ảnh">
-                                                        <i class="bi bi-image"></i>
-                                                    </a>
-                                                    <a asp-controller="ProductVariant" asp-action="Index" asp-route-productId="@product.ProductId"
-                                                       class="btn btn-outline-dark" title="Biến thể">
-                                                        <i class="bi bi-box-seam"></i>
-                                                    </a>
+                                                    <span class="badge" style="background-color: #f0f0f0; color: #333; border: 1px solid #ddd;">@color</span>
                                                 }
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                                                @if (colors.Count > 4)
+                                                {
+                                                    <span class="badge" style="background-color: #f0f0f0; color: #333; border: 1px solid #ddd;">...</span>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             }
         </div>
@@ -546,13 +518,14 @@
         connection.on("VariantDeleted", function (variantId, productId) {
 
             console.log("VariantDeleted:", variantId, productId);
+            location.reload();
 
-            const row = document.querySelector(`[data-product-id='${productId}']`);
+            // const row = document.querySelector(`[data-product-id='${productId}']`);
 
-            if (row) {
-             console.log("Variant belongs to product in this page → reload");
-             location.reload();
-             }
+            // if (row) {
+            //  console.log("Variant belongs to product in this page → reload");
+            //  location.reload();
+            //  }
 
         });
 

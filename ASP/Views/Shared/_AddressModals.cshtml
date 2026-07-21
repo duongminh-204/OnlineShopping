@@ -1,0 +1,170 @@
+<!-- Edit/Add Address Modal -->
+<div class="modal fade" id="editAddressModal" tabindex="-1" aria-labelledby="editAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="editAddressModalLabel">Địa Chỉ Giao Hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="editAddressForm">
+                    <input type="hidden" id="editAddressId" name="AddressId" value="0" />
+                    
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control rounded-3" id="editFullName" name="FullName" placeholder="Họ và tên" required>
+                        <label for="editFullName">Họ và tên</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input type="tel" class="form-control rounded-3" id="editPhone" name="Phone" placeholder="Số điện thoại" required>
+                        <label for="editPhone">Số điện thoại</label>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control rounded-3" id="editCity" name="City" placeholder="Tỉnh/Thành phố" required>
+                                <label for="editCity">Tỉnh / Thành phố</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control rounded-3" id="editDistrict" name="District" placeholder="Quận/Huyện" required>
+                                <label for="editDistrict">Quận / Huyện</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control rounded-3" id="editWard" name="Ward" placeholder="Phường/Xã" required>
+                        <label for="editWard">Phường / Xã</label>
+                    </div>
+
+                    <div class="form-floating mb-4">
+                        <input type="text" class="form-control rounded-3" id="editAddressLine" name="AddressLine" placeholder="Địa chỉ cụ thể" required>
+                        <label for="editAddressLine">Địa chỉ cụ thể (Số nhà, đường...)</label>
+                    </div>
+
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" role="switch" id="editIsDefault" name="IsDefault" value="true">
+                        <label class="form-check-label text-muted ms-2" for="editIsDefault">Đặt làm địa chỉ mặc định</label>
+                    </div>
+
+                    <button type="button" onclick="saveAddress()" class="btn btn-dark w-100 py-3 rounded-pill fw-bold shadow-sm" style="font-size: 1.1rem;">
+                        <i class="bi bi-save me-2"></i> Lưu Địa Chỉ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openAddAddressModal() {
+        document.getElementById('editAddressId').value = 0;
+        document.getElementById('editAddressForm').reset();
+        
+        // Hide selection modal if open, show edit modal
+        var selModal = bootstrap.Modal.getInstance(document.getElementById('addressModal'));
+        if (selModal) selModal.hide();
+        
+        new bootstrap.Modal(document.getElementById('editAddressModal')).show();
+    }
+
+    function openEditAddressModal(id) {
+        fetch('/api/address/' + id)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('editAddressId').value = data.addressId;
+                document.getElementById('editFullName').value = data.fullName;
+                document.getElementById('editPhone').value = data.phone;
+                document.getElementById('editCity').value = data.city;
+                document.getElementById('editDistrict').value = data.district;
+                document.getElementById('editWard').value = data.ward;
+                document.getElementById('editAddressLine').value = data.addressLine;
+                document.getElementById('editIsDefault').checked = data.isDefault;
+                
+                var selModal = bootstrap.Modal.getInstance(document.getElementById('addressModal'));
+                if (selModal) selModal.hide();
+                
+                new bootstrap.Modal(document.getElementById('editAddressModal')).show();
+            })
+            .catch(err => {
+                Swal.fire('Lỗi', 'Không thể tải thông tin địa chỉ.', 'error');
+            });
+    }
+
+    function saveAddress() {
+        const form = document.getElementById('editAddressForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const payload = {
+            AddressId: parseInt(document.getElementById('editAddressId').value),
+            FullName: document.getElementById('editFullName').value,
+            Phone: document.getElementById('editPhone').value,
+            City: document.getElementById('editCity').value,
+            District: document.getElementById('editDistrict').value,
+            Ward: document.getElementById('editWard').value,
+            AddressLine: document.getElementById('editAddressLine').value,
+            IsDefault: document.getElementById('editIsDefault').checked
+        };
+
+        fetch('/api/address/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    title: 'Thành công',
+                    text: data.message,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    location.reload(); // Reload to reflect changes in the parent page (Cart or Checkout)
+                });
+            } else {
+                Swal.fire('Lỗi', data.message, 'error');
+            }
+        })
+        .catch(err => {
+            Swal.fire('Lỗi', 'Có lỗi xảy ra khi lưu địa chỉ.', 'error');
+        });
+    }
+
+    function deleteAddress(id) {
+        Swal.fire({
+            title: 'Xác nhận xóa?',
+            text: "Bạn sẽ không thể khôi phục địa chỉ này!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/api/address/' + id, {
+                    method: 'DELETE'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        Swal.fire('Đã xóa!', data.message, 'success').then(() => location.reload());
+                    } else {
+                        Swal.fire('Lỗi', data.message, 'error');
+                    }
+                })
+                .catch(err => Swal.fire('Lỗi', 'Có lỗi xảy ra', 'error'));
+            }
+        });
+    }
+</script>

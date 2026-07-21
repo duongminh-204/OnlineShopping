@@ -1,72 +1,147 @@
 ﻿@model ASP.Models.Admin.Accounts.ApplicationUser
 
-<div class="p-3">
-    <h5 class="mb-3 text-center">Chỉnh sửa thông tin cá nhân</h5>
-
-    <form id="editProfileForm" asp-action="UpdateProfile" asp-controller="Account" method="post" enctype="multipart/form-data">
-        @Html.AntiForgeryToken()
-
+<div class="profile-edit-shell">
+    <div class="profile-edit-card shadow-sm">
         <div class="text-center mb-4">
-            <img src="~/assets/users/@(Model.Avatar ?? "default-avatar.png")"
-                 alt="Avatar"
-                 class="rounded-circle shadow"
-                 style="width:100px; height:100px; object-fit:cover; border:3px solid #eee;"
-                 id="previewAvatar" />
+            <div class="avatar-preview-wrap">
+                <img src="@(string.IsNullOrWhiteSpace(Model.Avatar) ? "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' rx='100' fill='%23f3f3f3'/%3E%3Ccircle cx='100' cy='82' r='38' fill='%23111'/%3E%3Cpath d='M40 166c12-32 46-48 60-48s48 16 60 48' fill='%23111'/%3E%3C/svg%3E" : Url.Content($"~/assets/users/{Model.Avatar}"))"
+                     alt="Avatar"
+                     class="avatar-preview"
+                     id="previewAvatar"
+                     onerror="this.onerror=null;this.src='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' rx='100' fill='%23f3f3f3'/%3E%3Ccircle cx='100' cy='82' r='38' fill='%23111'/%3E%3Cpath d='M40 166c12-32 46-48 60-48s48 16 60 48' fill='%23111'/%3E%3C/svg%3E';" />
+            </div>
 
-            <div class="mt-3">
-                <label class="btn btn-sm btn-outline-primary">
-                    Chọn ảnh mới
+            <div class="mt-3 d-flex justify-content-center gap-2 flex-wrap">
+                <label class="btn btn-sm profile-btn-primary">
+                    <i class="bi bi-image me-1"></i> Chọn ảnh mới
                     <input type="file" name="Avatar" id="avatarInput" accept="image/*" style="display:none;" />
                 </label>
-                <button type="button" class="btn btn-sm btn-outline-danger ms-2" id="removeAvatarBtn" @(string.IsNullOrEmpty(Model.Avatar) ? "disabled" : "")>
-                    Xóa ảnh
+                <button type="button" class="btn btn-sm profile-btn-danger" id="removeAvatarBtn" @(string.IsNullOrEmpty(Model.Avatar) ? "disabled" : "")>
+                    <i class="bi bi-trash me-1"></i> Xóa ảnh
                 </button>
                 <input type="hidden" name="rmavatar" id="rmavatar" value="" />
             </div>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Họ và tên</label>
-            <input type="text" class="form-control" name="FullName" value="@Model.FullName" required />
-        </div>
+        <form id="editProfileForm" asp-action="UpdateProfile" asp-controller="Account" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
 
-        <div class="mb-3">
-            <label class="form-label">Số điện thoại</label>
-            <input type="text" class="form-control" name="PhoneNumber" value="@Model.PhoneNumber" />
-        </div>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Họ và tên</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" class="form-control" name="FullName" value="@Model.FullName" required />
+                    </div>
+                </div>
 
-        <div class="text-center mt-4">
-            <button type="submit" class="btn btn-primary px-4">Lưu thay đổi</button>
-            <button type="button" class="btn btn-outline-secondary px-4 ms-2" data-bs-dismiss="modal">Hủy</button>
-        </div>
-    </form>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Số điện thoại</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                        <input type="text" class="form-control" name="PhoneNumber" value="@Model.PhoneNumber" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-2 mt-4">
+                <button type="submit" class="btn profile-btn-primary px-4">
+                    <i class="bi bi-check2-circle me-1"></i> Lưu thay đổi
+                </button>
+                <button type="button" class="btn profile-btn-secondary px-4" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Hủy
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
-    // Preview ảnh khi chọn file
-    document.getElementById('avatarInput').addEventListener('change', function(e) {
+    document.getElementById('avatarInput')?.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('previewAvatar').src = e.target.result;
+            reader.onload = function(event) {
+                document.getElementById('previewAvatar').src = event.target.result;
             };
             reader.readAsDataURL(file);
-            // Reset remove flag khi chọn ảnh mới
             document.getElementById('rmavatar').value = "";
         }
     });
 
-    // Xử lý nút xóa ảnh
-    document.getElementById('removeAvatarBtn').addEventListener('click', function() {
-        document.getElementById('previewAvatar').src = "/assets/users/default-avatar.png";
+    document.getElementById('removeAvatarBtn')?.addEventListener('click', function() {
+        document.getElementById('previewAvatar').src = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' rx='100' fill='%23f3f3f3'/%3E%3Ccircle cx='100' cy='82' r='38' fill='%23111'/%3E%3Cpath d='M40 166c12-32 46-48 60-48s48 16 60 48' fill='%23111'/%3E%3C/svg%3E";
         document.getElementById('avatarInput').value = "";
         document.getElementById('rmavatar').value = "remove";
     });
 </script>
 
 <style>
-    #previewAvatar {
+    .profile-edit-shell {
+        padding: 4px 2px;
+        font-family: DaxMedium, Arial, Helvetica, sans-serif;
+    }
+
+    .profile-edit-card {
+        border: 1px solid #d9d9d9;
+        border-radius: 18px;
+        padding: 20px;
+        background: #ffffff;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .avatar-preview-wrap {
+        display: inline-flex;
+        padding: 6px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f2f2f2 0%, #cfcfcf 100%);
+    }
+
+    .avatar-preview {
+        width: 108px;
+        height: 108px;
         object-fit: cover;
+        border-radius: 50%;
+        border: 4px solid #fff;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+
+    .profile-btn-primary {
+        background: #111111;
+        color: #ffffff;
+        border: 1px solid #111111;
+        font-weight: 600;
+    }
+
+    .profile-btn-primary:hover {
+        background: #2b2b2b;
+        color: #ffffff;
+        border-color: #2b2b2b;
+    }
+
+    .profile-btn-danger {
+        background: #fff;
+        color: #333333;
+        border: 1px solid #bfbfbf;
+        font-weight: 600;
+    }
+
+    .profile-btn-danger:hover {
+        background: #f3f3f3;
+        color: #111111;
+        border-color: #8c8c8c;
+    }
+
+    .profile-btn-secondary {
+        background: #fff;
+        color: #111111;
+        border: 1px solid #bfbfbf;
+        font-weight: 600;
+    }
+
+    .profile-btn-secondary:hover {
+        background: #f3f3f3;
+        color: #111111;
+        border-color: #8c8c8c;
     }
 </style>

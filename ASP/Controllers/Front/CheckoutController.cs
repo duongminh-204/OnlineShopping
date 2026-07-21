@@ -1,4 +1,4 @@
-﻿using ASP.Models.Admin.Accounts;
+using ASP.Models.Admin.Accounts;
 using ASP.Models.ASPModel;
 using ASP.Models.Domains;
 using ASP.Models.ViewModels;
@@ -90,22 +90,15 @@ namespace ASP.Controllers.Front
                 return RedirectToAction("Index", "Cart");
             }
 
-        
-            string formAddress = Request.Form["address"];
-            string formCity = Request.Form["city"];
-            string formDistrict = Request.Form["district"];
-            string formWard = Request.Form["ward"];
+            if (!int.TryParse(Request.Form["addressId"], out int addressId))
+            {
+                TempData["Error"] = "Vui lòng chọn địa chỉ giao hàng hợp lệ!";
+                return RedirectToAction("Index");
+            }
 
             var shippingAddress = await _context.ShippingAddresses
                 .Include(a => a.User)
-                .FirstOrDefaultAsync(a =>
-                    a.UserId == userId &&
-                    a.AddressLine == formAddress &&
-                    a.City == formCity &&
-                    a.District == formDistrict &&
-                    a.Ward == formWard
-                );
-
+                .FirstOrDefaultAsync(a => a.UserId == userId && a.AddressId == addressId);
            
             if (shippingAddress == null)
             {

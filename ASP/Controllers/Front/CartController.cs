@@ -1,4 +1,4 @@
-﻿using ASP.Models.Domains;
+using ASP.Models.Domains;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -38,7 +38,21 @@ namespace ASP.Controllers.Front
             var cart = await _cartRepo.GetCartWithItemsAsync(userId);
 
             if (cart == null)
-                return Content("Cart is empty");
+            {
+                // Return empty cart view so the friendly empty-state UI is shown
+                var emptyCart = new Cart
+                {
+                    CartItems = new System.Collections.Generic.List<CartItem>()
+                };
+
+                ViewBag.CartItemCount = 0;
+                ViewBag.Addresses = await _context.ShippingAddresses
+                    .Where(s => s.UserId == userId)
+                    .Include(a => a.User)
+                    .ToListAsync();
+
+                return View("~/Views/Front/Carts/Index.cshtml", emptyCart);
+            }
 
             cart.CartItems = cart.CartItems?
                 .Where(ci =>
@@ -50,6 +64,10 @@ namespace ASP.Controllers.Front
                 ?? new List<CartItem>();
 
             ViewBag.CartItemCount = cart.CartItems.Sum(ci => ci.Quantity);
+            ViewBag.Addresses = await _context.ShippingAddresses
+                .Where(s => s.UserId == userId)
+                .Include(a => a.User)
+                .ToListAsync();
 
             return View("~/Views/Front/Carts/Index.cshtml", cart);
         }

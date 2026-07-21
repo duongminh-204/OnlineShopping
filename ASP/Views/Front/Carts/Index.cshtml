@@ -1,8 +1,11 @@
-﻿@model ASP.Models.Domains.Cart
+@model ASP.Models.Domains.Cart
 
 @{
     ViewData["Title"] = "Giỏ hàng của bạn";
     Layout = "~/Views/Shared/Layout/Front/_Layout.cshtml";
+
+    var addresses = ViewBag.Addresses as List<ASP.Models.Domains.ShippingAddress>;
+    var defaultAddr = addresses?.FirstOrDefault(a => a.IsDefault) ?? addresses?.FirstOrDefault();
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
@@ -132,40 +135,131 @@
 
         </div>
 
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-geo-alt text-danger me-2"></i>Địa Chỉ Giao Hàng</h5>
+                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addressModal">
+                    Quản lý địa chỉ
+                </button>
+            </div>
+            
+            
+            <input type="hidden" id="selectedAddressId" value="@(defaultAddr?.AddressId ?? 0)" />
+            @if(defaultAddr != null)
+            {
+                <div class="d-flex" id="selectedAddressDisplay">
+                    <div class="flex-grow-1">
+                        <strong>@defaultAddr.FullName - @defaultAddr.Phone</strong>
+                        <p class="text-muted mb-0 small">@defaultAddr.AddressLine, @defaultAddr.Ward, @defaultAddr.District, @defaultAddr.City</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mb-0 small fst-italic">Chưa có địa chỉ giao hàng. Vui lòng thêm mới!</p>
+            }
+        </div>
+
         <div class="d-flex justify-content-between align-items-center mt-4">
-
-            <a asp-controller="Product1"
-               asp-action="Index"
-               class="btn btn-outline-secondary">
-
+            <a asp-controller="Product1" asp-action="Index" class="btn btn-outline-secondary">
                 ← Tiếp tục mua sắm
-
             </a>
             @Html.AntiForgeryToken()
-
             <button type="button" id="clearCartBtn" class="btn btn-outline-danger mt-2 me-2">
                 Xóa toàn bộ giỏ hàng
             </button>
             <div class="text-end">
-
                 <h4>
-
                     Tổng tiền:
                     <span id="cartTotal">
                         @Model.CartItems.Sum(i => i.Quantity * (i.ProductVariant?.Price ?? 0)).ToString("N0") đ
                     </span>
-
                 </h4>
-
-                <a asp-controller="Checkout" asp-action="Index" class="btn btn-lg text-white mt-2" style="background:black">
+                <a href="javascript:void(0)" onclick="goToCheckout()" class="btn btn-lg text-white mt-2" style="background:black">
                     <i class="bi bi-credit-card me-2"></i>Thanh toán ngay
                 </a>
-
             </div>
-
         </div>
-
     }
+</div>
+
+<!-- Modal Chọn Địa Chỉ -->
+<div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true" style="font-family:'Roboto', sans-serif;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content address-popup border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="addressModalLabel">Địa Chỉ Của Tôi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 mt-2">
+                <form id="addressForm">
+                    @if(ViewBag.Addresses != null) {
+                        foreach (var add in addresses)
+                        {
+                            <label class="address-item p-3 d-block border-bottom mb-0" style="cursor: pointer;">
+                                <div class="d-flex align-items-start">
+                                    <input type="radio" name="addressSelect" class="form-check-input me-3 mt-1" value="@add.AddressId" @(add.AddressId == (defaultAddr?.AddressId ?? 0) ? "checked" : "") onchange="selectAddress(this)" data-fullname="@add.FullName" data-phone="@add.Phone" data-address="@($"{add.AddressLine}, {add.Ward}, {add.District}, {add.City}")" />
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between">
+                                            <strong>@add.FullName <span class="text-muted fw-normal ms-2">@add.Phone</span></strong>
+                                            <div>
+                                                <a href="javascript:void(0)" onclick="event.preventDefault(); event.stopPropagation(); openEditAddressModal(@add.AddressId)" class="text-primary text-decoration-none small me-2">Sửa</a>
+                                                <a href="javascript:void(0)" onclick="event.preventDefault(); event.stopPropagation(); deleteAddress(@add.AddressId)" class="text-danger text-decoration-none small">Xóa</a>
+                                            </div>
+                                        </div>
+                                        <div class="text-muted small mt-1">
+                                            @add.AddressLine, @add.District, @add.Ward, @add.City
+                                        </div>
+                                        @if (add.IsDefault)
+                                        {
+                                            <span class="badge border border-danger text-danger mt-1 fw-normal">Mặc định</span>
+                                        }
+                                    </div>
+                                </div>
+                            </label>
+                        }
+                    }
+                </form>
+            </div>
+            <div class="modal-footer border-top-0 p-3">
+                <button type="button" onclick="openAddAddressModal()" class="btn btn-dark w-100 py-2 rounded-pill fw-bold shadow-sm">
+                    <i class="bi bi-plus-lg me-1"></i> Thêm Địa Chỉ Mới
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_AddressModals")
+<script>
+    function selectAddress(radio) {
+        var id = radio.value;
+        var fullName = radio.getAttribute('data-fullname');
+        var phone = radio.getAttribute('data-phone');
+        var address = radio.getAttribute('data-address');
+        
+        document.getElementById('selectedAddressId').value = id;
+        document.getElementById('selectedAddressDisplay').innerHTML = `
+            <div class="flex-grow-1">
+                <strong>${fullName} - ${phone}</strong>
+                <p class="text-muted mb-0 small">${address}</p>
+            </div>
+        `;
+        
+        // Close modal
+        var modal = bootstrap.Modal.getInstance(document.getElementById('addressModal'));
+        if(modal) modal.hide();
+    }
+
+    function goToCheckout() {
+        var id = document.getElementById('selectedAddressId').value;
+        if(id && id !== '0') {
+            window.location.href = '@Url.Action("Index", "Checkout")?id=' + id;
+        } else {
+            Swal.fire('Vui lòng chọn', 'Bạn chưa chọn địa chỉ giao hàng', 'warning');
+        }
+    }
+</script>
 
 </div>
 <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>

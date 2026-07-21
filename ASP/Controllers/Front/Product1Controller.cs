@@ -40,7 +40,7 @@ namespace ASP.Controllers.Front
         }
 
         public IActionResult Index(
-   string? keyword,
+   string? keyword,      
    int? category,
    string? size,
    string? color,

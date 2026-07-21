@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Thông tin giao hàng";
     Layout = "~/Views/Shared/Layout/Front/_Layout.cshtml";
 }
@@ -158,6 +158,7 @@
             <h2 class="section-title">Thông tin giao hàng</h2>
 
             <form asp-controller="Checkout" asp-action="PlaceOrder" method="post">
+                <input type="hidden" id="addressId" name="addressId" value="@Model.Address.AddressId" />
                 <div class="mb-4">
                     <label class="form-label">Địa chỉ</label>
                     <div style="display: flex">
@@ -315,7 +316,8 @@
         </div>
     </div>
 </div>
-<div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+<!-- Modal Chọn Địa Chỉ -->
+<div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true" style="font-family:'Roboto', sans-serif;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content address-popup">
 
@@ -342,7 +344,10 @@
                                 <div class="flex-grow-1">
                                     <div class="d-flex justify-content-between">
                                         <strong>@add.FullName <span class="text-muted fw-normal ms-2">@add.User.PhoneNumber</span></strong>
-                                        <a asp-controller="Shipping" asp-action="Index" asp-route-id="@add.AddressId" class="text-primary text-decoration-none small">Cập nhật</a>
+                                        <div>
+                                            <a href="javascript:void(0)" onclick="event.preventDefault(); event.stopPropagation(); openEditAddressModal(@add.AddressId)" class="text-primary text-decoration-none small me-2">Cập nhật</a>
+                                            <a href="javascript:void(0)" onclick="event.preventDefault(); event.stopPropagation(); deleteAddress(@add.AddressId)" class="text-danger text-decoration-none small">Xóa</a>
+                                        </div>
                                     </div>
                                     <div class="text-muted small mt-1">
                                         @add.AddressLine, @add.District, @add.Ward, @add.City
@@ -364,10 +369,10 @@
             </div>
 
             <div class="modal-footer border-top-0 d-flex justify-content-end p-3">
-                <a asp-controller="AddAddress" asp-action="Index"
+                <button type="button" onclick="openAddAddressModal()"
                    class="btn btn-orange d-flex align-items-center text-decoration-none">
                     <span class="fs-4 me-2 lh-1">+</span> Thêm Địa Chỉ Mới
-                </a>
+                </button>
             </div>
         </div>
     </div>
@@ -392,6 +397,18 @@
                     position: 'top-end' 
                 });
             }
+        var errorMsg = '@Html.Raw(TempData["Error"])';
+            if (errorMsg) {
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: errorMsg,
+                    icon: 'error',
+                    timer: 3000, 
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end' 
+                });
+            }
         });
     </script>
     <script>
@@ -409,6 +426,7 @@
                         console.log("ID:", this.value);
                         console.log(this.dataset);
 
+                        document.getElementById("addressId").value = this.value;
                         document.getElementById("city").value = this.dataset.city;
                         document.getElementById("district").value = this.dataset.district;
                         document.getElementById("ward").value = this.dataset.ward;
@@ -438,3 +456,4 @@
         connection.start();
     </script>
 }
+@await Html.PartialAsync("_AddressModals")

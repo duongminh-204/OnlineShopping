@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -57,6 +57,11 @@ namespace ASP.Models.Admin.Auths
 
                     #endregion
                     IdentityResult result = await userManager.CreateAsync(objUser, request.PassWord);
+                    if (!result.Succeeded)
+                    {
+                        scope.Dispose();
+                        return listener.RegisterAccountFails(request);
+                    }
                     #region add user_roles
                     var getRoleDefault = _context.Roles.FirstOrDefault(f => f.DefaultRole == true);
                     if (getRoleDefault != null)
@@ -71,13 +76,14 @@ namespace ASP.Models.Admin.Auths
                     }
                     else
                     {
+                        scope.Dispose();
                         return listener.RegisterAccountFails(request);
                     }
                     #endregion
                     #region update UserClaims: remove & add new  
                     // lay role id
                     var findRole = _context.Roles.FirstOrDefault(f => f.Id == getRoleDefault.Id);
-                    if (findRole != null)
+                    if (findRole != null && !string.IsNullOrEmpty(findRole.Content))
                     {
                         var objContent = JsonConvert.DeserializeObject<List<ActionDetail>>(findRole.Content).ToList();
                         foreach (var claim in objContent)
@@ -124,7 +130,7 @@ namespace ASP.Models.Admin.Auths
                     scope.Complete();
                     return listener.RegisterAccountSuccess();
                 }
-                catch (DbException ex)
+                catch (Exception ex)
                 {
                     scope.Dispose();
                     _logger.LogError("{0}: {1}", MethodBase.GetCurrentMethod().DeclaringType, ex.Message);
@@ -158,6 +164,11 @@ namespace ASP.Models.Admin.Auths
                     objUser.UpdatedDate = DateTime.Now;
                     #endregion
                     IdentityResult result = await userManager.CreateAsync(objUser, request.PassWord);
+                    if (!result.Succeeded)
+                    {
+                        scope.Dispose();
+                        return false;
+                    }
                     #region add user_roles
                     var getRoleDefault = _context.Roles.FirstOrDefault(f => f.DefaultRole == true);
                     if (getRoleDefault != null)
@@ -170,13 +181,14 @@ namespace ASP.Models.Admin.Auths
                     }
                     else
                     {
+                        scope.Dispose();
                         return false;
                     }
                     #endregion
                     #region update UserClaims: remove & add new  
                     // lay role id
                     var findRole = _context.Roles.FirstOrDefault(f => f.Id == getRoleDefault.Id);
-                    if (findRole != null)
+                    if (findRole != null && !string.IsNullOrEmpty(findRole.Content))
                     {
                         var objContent = JsonConvert.DeserializeObject<List<ActionDetail>>(findRole.Content).ToList();
                         foreach (var claim in objContent)
@@ -223,7 +235,7 @@ namespace ASP.Models.Admin.Auths
                     scope.Complete();
                     return true;
                 }
-                catch (DbException ex)
+                catch (Exception ex)
                 {
                     scope.Dispose();
                     _logger.LogError("{0}: {1}", MethodBase.GetCurrentMethod().DeclaringType, ex.Message);

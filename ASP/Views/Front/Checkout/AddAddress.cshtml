@@ -1,65 +1,92 @@
-﻿@model ASP.Models.ViewModels.CheckoutViewModel
+@model ASP.Models.ViewModels.CheckoutViewModel
 @{
     ViewData["Title"] = "Thêm địa chỉ mới";
     Layout = "~/Views/Shared/Layout/Front/_Layout.cshtml";
 }
 
-<div class="container mt-4">
+<div class="container py-5" style="font-family: 'Roboto', sans-serif;">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-success text-white py-3">
-                    <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Thêm địa chỉ giao hàng</h5>
+        <div class="col-lg-7">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-dark text-white p-4 text-center border-0">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-geo-alt me-2"></i>Thêm Địa Chỉ Giao Hàng</h4>
+                    <p class="text-white-50 small mb-0 mt-2">Vui lòng cung cấp thông tin chính xác để nhận hàng nhanh nhất</p>
                 </div>
-                <div class="card-body p-4">
+                
+                <div class="card-body p-5">
                     <form asp-controller="AddAddress" asp-action="Add" method="post">
                         <input type="hidden" asp-for="Address.UserId" />
 
-                        <div class="row">
-                            <input type="hidden" asp-for="Address.FullName" class="form-control" />
+                        <div class="row g-4">
+                            <!-- Họ tên & SĐT -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Address.FullName" class="form-control rounded-3" placeholder="Họ và tên" />
+                                    <label asp-for="Address.FullName" class="text-muted"><i class="bi bi-person me-2"></i>Họ và tên</label>
+                                    <span asp-validation-for="Address.FullName" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
                             
-
-                            <div class="col-md-4 mb-3">
-                                <label asp-for="Address.City" class="form-label fw-bold">Tỉnh/Thành phố</label>
-                                <input asp-for="Address.City" class="form-control" />
-                                <span asp-validation-for="Address.City" class="text-danger small"></span>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label asp-for="Address.District" class="form-label fw-bold">Quận/Huyện</label>
-                                <input asp-for="Address.District" class="form-control" />
-                                <span asp-validation-for="Address.District" class="text-danger small"></span>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label asp-for="Address.Ward" class="form-label fw-bold">Phường/Xã</label>
-                                <input asp-for="Address.Ward" class="form-control" />
-                                <span asp-validation-for="Address.Ward" class="text-danger small"></span>
-                            </div>
-
-                            <div class="col-12 mb-3">
-                                <label asp-for="Address.AddressLine" class="form-label fw-bold">Địa chỉ chi tiết</label>
-                                <textarea asp-for="Address.AddressLine" class="form-control" rows="2"></textarea>
-                                <span asp-validation-for="Address.AddressLine" class="text-danger small"></span>
-                            </div>
-
-                            <div class="col-12 mb-4">
-                                <div class="form-check form-switch">
-                                    <input asp-for="Address.IsDefault" class="form-check-input" type="checkbox">
-                                    <label class="form-check-label" asp-for="Address.IsDefault">Đặt làm mặc định</label>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Address.Phone" class="form-control rounded-3" placeholder="Số điện thoại" />
+                                    <label asp-for="Address.Phone" class="text-muted"><i class="bi bi-telephone me-2"></i>Số điện thoại</label>
+                                    <span asp-validation-for="Address.Phone" class="text-danger small mt-1 d-block"></span>
                                 </div>
                             </div>
 
-                            <div class="col-md-4 mb-3">
-                                <label asp-for="Address.Phone" class="form-label fw-bold">Số Điện Thoại</label>
-                                <input asp-for="Address.Phone" class="form-control" />
-                                <span asp-validation-for="Address.Phone" class="text-danger small"></span>
+                            <!-- Tỉnh / Huyện / Xã -->
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input asp-for="Address.City" class="form-control rounded-3" placeholder="Tỉnh/Thành phố" />
+                                    <label asp-for="Address.City" class="text-muted">Tỉnh/Thành phố</label>
+                                    <span asp-validation-for="Address.City" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input asp-for="Address.District" class="form-control rounded-3" placeholder="Quận/Huyện" />
+                                    <label asp-for="Address.District" class="text-muted">Quận/Huyện</label>
+                                    <span asp-validation-for="Address.District" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input asp-for="Address.Ward" class="form-control rounded-3" placeholder="Phường/Xã" />
+                                    <label asp-for="Address.Ward" class="text-muted">Phường/Xã</label>
+                                    <span asp-validation-for="Address.Ward" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <!-- Địa chi chi tiết -->
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <textarea asp-for="Address.AddressLine" class="form-control rounded-3" style="height: 100px" placeholder="Số nhà, tên đường..."></textarea>
+                                    <label asp-for="Address.AddressLine" class="text-muted"><i class="bi bi-house-door me-2"></i>Địa chỉ chi tiết (Số nhà, đường...)</label>
+                                    <span asp-validation-for="Address.AddressLine" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <!-- Mặc định -->
+                            <div class="col-12">
+                                <div class="form-check form-switch p-3 bg-light rounded-3 d-flex align-items-center">
+                                    <input asp-for="Address.IsDefault" class="form-check-input ms-0 me-3 mt-0" style="width: 3rem; height: 1.5rem; cursor: pointer;" type="checkbox" id="flexSwitchCheckDefault">
+                                    <label class="form-check-label fw-medium mb-0 ms-2" for="flexSwitchCheckDefault" style="cursor: pointer;">
+                                        Đặt làm địa chỉ giao hàng mặc định
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-between">
-                            <a asp-controller="Shipping" asp-action="Index" class="btn btn-light">Quay lại</a>
-                            <button type="submit" class="btn btn-success px-4">Thêm địa chỉ</button>
+                        <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                            <a asp-controller="Shipping" asp-action="Index" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-medium transition-all">
+                                <i class="bi bi-arrow-left me-2"></i>Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-dark px-5 py-2 rounded-pill fw-medium transition-all shadow-sm">
+                                <i class="bi bi-check2-circle me-2"></i>Lưu Địa Chỉ
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -67,3 +94,7 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

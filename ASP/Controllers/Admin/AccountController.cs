@@ -3,12 +3,14 @@ using ASP.Models.Admin.Accounts;
 using ASP.Models.ASPModel;
 using ASP.Policies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -24,13 +26,17 @@ namespace ASP.Controllers.Admin
         public BaseController baseController;
         protected string photosPath;
         private readonly UserManager<ApplicationUser> _userManager;
-        public AccountController(IAuthorizationService authService, ASPDbContext context, AccountRepositoryInterface user, BaseController baseController, UserManager<ApplicationUser> userManager)
+        private readonly IWebHostEnvironment _env;
+        public AccountController(IAuthorizationService authService, ASPDbContext context, AccountRepositoryInterface user, BaseController baseController, UserManager<ApplicationUser> userManager, IWebHostEnvironment env)
         {
             _authService = authService;
             _context = context;
             this.user = user;
             this.baseController = baseController;
             _userManager = userManager;
+            _env = env;
+            photosPath = Path.Combine(_env.WebRootPath, "assets", "users");
+            Directory.CreateDirectory(photosPath);
         }
         [HttpGet]
         [Route("admin/Account", Name = "admin.accounts")]

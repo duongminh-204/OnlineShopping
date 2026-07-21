@@ -414,45 +414,47 @@ namespace ASP.Models.Admin.Accounts
         //
         public async Task<IActionResult> ResetPassword(string id, AccountListenerInterface listener, ApplicationUser request)
         {
-            using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                try
+                var find = await userManager.FindByIdAsync(id);
+                if (find == null)
                 {
-                    var find = _context.Users.FirstOrDefault(f => f.Id == id);
-                    if (find == null)
-                    {
-                        return listener.PageNotFound();
-                    }
-                    #region log
-                    var logContent = EnumTypeLog.SetLogTitle("Sửa " + EnumTypeLog.APP_LOG_USER + " ID: " + find.Id);
-                    logContent += EnumTypeLog.SetLogLine("Mật khẩu", find.PassWord, request.PassWord);
-                    #endregion
-
-                    find.PassWord = request.PassWord;
-                    if (!string.IsNullOrEmpty(request.PassWord))
-                    {
-                        var password = new PasswordHasher<ApplicationUser>();
-                        var hashed = password.HashPassword(find, request.PassWord);
-                        find.PasswordHash = hashed;
-                    }
-                    find.UpdatedDate = DateTime.Now;
-
-                    if (logContent != null)
-                    {
-                        log.CreateLog(EnumTypeLog.APP_LOG_USER, logContent);
-                    }
-                    var result = await userManager.UpdateAsync(find);
-
-                    await _context.SaveChangesAsync();
-                    scope.Complete();
-                    return listener.UpdateAccountSuccess();
+                    return listener.PageNotFound();
                 }
-                
-                 catch (DbException ex)  {
-                    scope.Dispose();
-                    _logger.LogError("{0}/{1}: {2}", MethodBase.GetCurrentMethod().DeclaringType, MethodBase.GetCurrentMethod().Name, ex.Message);
-                    return listener.DeleteAccountFails();
+
+                var newPassword = request.PassWord?.Trim();
+                if (string.IsNullOrWhiteSpace(newPassword))
+                {
+                    return listener.ResetPasswordFails(request, "Vui lòng nhập mật khẩu mới.");
                 }
+
+                var resetToken = await userManager.GeneratePasswordResetTokenAsync(find);
+                var resetResult = await userManager.ResetPasswordAsync(find, resetToken, newPassword);
+                if (!resetResult.Succeeded)
+                {
+                    var errorMessage = string.Join(", ", resetResult.Errors.Select(e => e.Description));
+                    _logger.LogWarning("Password reset failed for user {UserId}: {Errors}", find.Id, errorMessage);
+                    return listener.ResetPasswordFails(request, errorMessage);
+                }
+
+                find.UpdatedDate = DateTime.Now;
+                await _context.SaveChangesAsync();
+
+                #region log
+                var logContent = EnumTypeLog.SetLogTitle("Sửa " + EnumTypeLog.APP_LOG_USER + " ID: " + find.Id);
+                logContent += EnumTypeLog.SetLogLine("Mật khẩu", null, "********");
+                if (logContent != null)
+                {
+                    log.CreateLog(EnumTypeLog.APP_LOG_USER, logContent);
+                }
+                #endregion
+
+                return listener.ResetPasswordSuccess();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{0}/{1}", MethodBase.GetCurrentMethod().DeclaringType, MethodBase.GetCurrentMethod().Name);
+                return listener.ResetPasswordFails(request, "Có lỗi xảy ra khi đổi mật khẩu.");
             }
         }
         //

@@ -188,6 +188,26 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
 }
 
+app.Use(async (context, next) =>
+{
+    if (app.Environment.IsDevelopment() && context.Request.Path.StartsWithSegments("/browserLink"))
+    {
+        context.Response.StatusCode = StatusCodes.Status204NoContent;
+        return;
+    }
+
+    context.Response.OnStarting(() =>
+    {
+        if (context.Response.Headers.ContainsKey("Permissions-Policy"))
+        {
+            context.Response.Headers.Remove("Permissions-Policy");
+        }
+        return Task.CompletedTask;
+    });
+
+    await next();
+});
+
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();

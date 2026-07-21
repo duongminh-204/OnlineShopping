@@ -125,6 +125,7 @@ namespace ASP.Controllers.Admin
             }).FirstOrDefault(w => w.Value == 15.ToString());
             return View("../Admin/Accounts/Edit", user.GetAccountById(id, null));
         }
+        [HttpGet]
         [Route("admin/Account/ResetPassword/{id?}", Name = "admin.accounts.resetpw")]
         public async Task<IActionResult> ResetPassword(string id)
         {
@@ -165,6 +166,21 @@ namespace ASP.Controllers.Admin
             var hasAccess = await _authService.AuthorizeAsync(User, new DocumentAuth(), PolicyOperations.ASPUsersUpdate);
             if (!hasAccess.Succeeded) return new ForbidResult();
             #endregion
+
+            if (string.IsNullOrWhiteSpace(user.PassWord) || string.IsNullOrWhiteSpace(user.RePassWord))
+            {
+                return ResetPasswordFails(user, "Vui lòng nhập mật khẩu mới và nhập lại mật khẩu.");
+            }
+
+            if (user.PassWord.Length < 8)
+            {
+                return ResetPasswordFails(user, "Mật khẩu phải có ít nhất 8 ký tự.");
+            }
+
+            if (!string.Equals(user.PassWord, user.RePassWord, StringComparison.Ordinal))
+            {
+                return ResetPasswordFails(user, "Mật khẩu nhập lại không khớp.");
+            }
 
             return await this.user.ResetPassword(id, this, user);
         }
@@ -216,6 +232,23 @@ namespace ASP.Controllers.Admin
             TempData["mess-type"] = "error";
             TempData["mess-detail"] = BaseController.BaseMessage("update_fails");
             return View("../Admin/Accounts/Edit", user);
+        }
+        [HttpPost]
+        public IActionResult ResetPasswordSuccess()
+        {
+            TempData["mess-type"] = "success";
+            TempData["mess-detail"] = "Đổi mật khẩu thành công.";
+            return RedirectToAction(nameof(Index));
+        }
+        [HttpPost]
+        public IActionResult ResetPasswordFails(ApplicationUser user, string message = null)
+        {
+            TempData["mess-type"] = "error";
+            TempData["mess-detail"] = message ?? "Đổi mật khẩu thất bại.";
+            var model = !string.IsNullOrEmpty(user?.Id)
+                ? this.user.GetAccountById(user.Id, null)
+                : user;
+            return View("../Admin/Accounts/ResetPassword", model);
         }
         [HttpPost]
         public IActionResult BannedAccountSuccess()

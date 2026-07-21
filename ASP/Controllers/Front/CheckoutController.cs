@@ -22,7 +22,47 @@ namespace ASP.Controllers.Front
             _userManager = userManager;
         }
 
-        
+        private async Task<(bool IsValid, string? ErrorMessage)> ValidateCartForOrderAsync(IReadOnlyList<CartItem> cartItems)
+        {
+            var errors = new List<string>();
+
+            foreach (var item in cartItems)
+            {
+                if (item.Quantity <= 0)
+                {
+                    errors.Add("Một sản phẩm trong giỏ hàng có số lượng không hợp lệ.");
+                    continue;
+                }
+
+                var variant = await _context.ProductVariants
+                    .Include(v => v.Product)
+                    .FirstOrDefaultAsync(v => v.VariantId == item.VariantId);
+
+                if (variant == null)
+                {
+                    errors.Add("Một sản phẩm trong giỏ hàng không còn tồn tại.");
+                    continue;
+                }
+
+                if (!variant.IsActive || variant.Product == null || !variant.Product.IsActive)
+                {
+                    errors.Add("Một sản phẩm trong giỏ hàng hiện không còn khả dụng.");
+                    continue;
+                }
+
+                var productStock = variant.Product?.Quantity ?? int.MaxValue;
+                var availableStock = Math.Min(variant.QuantityVariants, productStock);
+
+                if (item.Quantity > availableStock)
+                {
+                    var productName = variant.Product?.ProductName ?? "Sản phẩm";
+                    errors.Add($"{productName} chỉ còn {availableStock} sản phẩm trong kho.");
+                }
+            }
+
+            return (errors.Count == 0, errors.FirstOrDefault());
+        }
+
         public async Task<IActionResult> Index()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -41,7 +81,15 @@ namespace ASP.Controllers.Front
                 return RedirectToAction("Index", "Cart");
             }
 
-         
+            var cartItems = cart.CartItems?.ToList() ?? new List<CartItem>();
+            var (isValid, errorMessage) = await ValidateCartForOrderAsync(cartItems);
+
+            if (!isValid)
+            {
+                TempData["Error"] = errorMessage ?? "Một số sản phẩm trong giỏ hàng không còn đủ số lượng.";
+                return RedirectToAction("Index", "Cart");
+            }
+
             var addresses = await _context.ShippingAddresses
                 .Where(s => s.UserId == userId)
                 .Include(a => a.User) 
@@ -82,11 +130,21 @@ namespace ASP.Controllers.Front
                 .Include(c => c.User)
                 .Include(c => c.CartItems)
                     .ThenInclude(ci => ci.ProductVariant)
+                        .ThenInclude(pv => pv.Product)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null || !cart.CartItems.Any())
             {
                 TempData["Error"] = "Giỏ hàng trống!";
+                return RedirectToAction("Index", "Cart");
+            }
+
+            var cartItems = cart.CartItems?.ToList() ?? new List<CartItem>();
+            var (isValid, errorMessage) = await ValidateCartForOrderAsync(cartItems);
+
+            if (!isValid)
+            {
+                TempData["Error"] = errorMessage ?? "Một số sản phẩm trong giỏ hàng không còn đủ số lượng.";
                 return RedirectToAction("Index", "Cart");
             }
 

@@ -1,4 +1,4 @@
-@model ASP.Models.Domains.Cart
+﻿@model ASP.Models.Domains.Cart
 
 @{
     ViewData["Title"] = "Giỏ hàng của bạn";
@@ -175,9 +175,9 @@
                         @Model.CartItems.Sum(i => i.Quantity * (i.ProductVariant?.Price ?? 0)).ToString("N0") đ
                     </span>
                 </h4>
-                <a href="javascript:void(0)" onclick="goToCheckout()" class="btn btn-lg text-white mt-2" style="background:black">
+                <button type="button" onclick="goToCheckout()" class="btn btn-lg text-white mt-2" style="background:black">
                     <i class="bi bi-credit-card me-2"></i>Thanh toán ngay
-                </a>
+                </button>
             </div>
         </div>
     }
@@ -251,14 +251,80 @@
         if(modal) modal.hide();
     }
 
-    function goToCheckout() {
+    async function goToCheckout() {
         var id = document.getElementById('selectedAddressId').value;
-        if(id && id !== '0') {
-            window.location.href = '@Url.Action("Index", "Checkout")?id=' + id;
-        } else {
-            Swal.fire('Vui lòng chọn', 'Bạn chưa chọn địa chỉ giao hàng', 'warning');
+        if (!id || id === '0') {
+            Swal.fire({
+                title: 'Vui lòng chọn',
+                text: 'Bạn chưa chọn địa chỉ giao hàng',
+                icon: 'warning',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch('@Url.Action("ValidateBeforeCheckout", "Cart")');
+            const result = await response.json().catch(() => null);
+
+            if (!response.ok || result?.success === false) {
+                Swal.fire({
+                    title: 'Thông báo',
+                    text: result?.message || 'Một số sản phẩm trong giỏ hàng không còn đủ số lượng.',
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3500
+                });
+                return;
+            }
+
+            window.location.assign('@Url.Action("Index", "Checkout")?id=' + id);
+        } catch (err) {
+            Swal.fire({
+                title: 'Lỗi',
+                text: 'Không thể kiểm tra giỏ hàng. Vui lòng thử lại.',
+                icon: 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
         }
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const errorMessage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Error"]?.ToString() ?? string.Empty));
+        const successMessage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["SuccessMessage"]?.ToString() ?? string.Empty));
+
+        if (errorMessage) {
+            Swal.fire({
+                title: 'Thông báo',
+                text: errorMessage,
+                icon: 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3500
+            });
+        }
+
+        if (successMessage) {
+            Swal.fire({
+                title: 'Thành công',
+                text: successMessage,
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+    });
 </script>
 
 </div>

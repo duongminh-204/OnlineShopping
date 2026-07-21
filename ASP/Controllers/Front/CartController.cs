@@ -54,14 +54,7 @@ namespace ASP.Controllers.Front
                 return View("~/Views/Front/Carts/Index.cshtml", emptyCart);
             }
 
-            cart.CartItems = cart.CartItems?
-                .Where(ci =>
-                    ci.ProductVariant != null &&
-                    ci.ProductVariant.IsActive &&
-                    ci.ProductVariant.Product != null &&
-                    ci.ProductVariant.Product.IsActive)
-                .ToList()
-                ?? new List<CartItem>();
+            cart.CartItems = GetActiveCartItems(cart);
 
             ViewBag.CartItemCount = cart.CartItems.Sum(ci => ci.Quantity);
             ViewBag.Addresses = await _context.ShippingAddresses
@@ -70,6 +63,99 @@ namespace ASP.Controllers.Front
                 .ToListAsync();
 
             return View("~/Views/Front/Carts/Index.cshtml", cart);
+        }
+
+        private async Task<(bool IsValid, string? Message, int AvailableStock)> ValidateStockAsync(int variantId, int requestedQuantity)
+        {
+            var variant = await _context.ProductVariants
+                .Include(v => v.Product)
+                .FirstOrDefaultAsync(v => v.VariantId == variantId);
+
+            if (variant == null)
+            {
+                return (false, "Không tìm thấy biến thể sản phẩm", 0);
+            }
+
+            if (!variant.IsActive)
+            {
+                return (false, "Biến thể này hiện không còn hoạt động", 0);
+            }
+
+            if (variant.Product == null || !variant.Product.IsActive)
+            {
+                return (false, "Sản phẩm này hiện không còn hoạt động", 0);
+            }
+
+            var availableStock = Math.Min(variant.QuantityVariants, variant.Product.Quantity);
+
+            if (availableStock <= 0)
+            {
+                return (false, "Biến thể này đã hết hàng", 0);
+            }
+
+            if (requestedQuantity > availableStock)
+            {
+                return (false, $"Số lượng vượt quá tồn kho. Chỉ còn {availableStock} sản phẩm.", availableStock);
+            }
+
+            return (true, null, availableStock);
+        }
+
+        private async Task<(bool IsValid, string? Message)> ValidateCartItemsAsync(IReadOnlyList<CartItem> cartItems)
+        {
+            var errors = new List<string>();
+
+            foreach (var item in cartItems)
+            {
+                if (item.Quantity <= 0)
+                {
+                    errors.Add("Một sản phẩm trong giỏ hàng có số lượng không hợp lệ.");
+                    continue;
+                }
+
+                var stockValidation = await ValidateStockAsync(item.VariantId, item.Quantity);
+                if (!stockValidation.IsValid)
+                {
+                    var productName = item.ProductVariant?.Product?.ProductName ?? "Sản phẩm";
+                    errors.Add($"{productName}: {stockValidation.Message}");
+                }
+            }
+
+            return (errors.Count == 0, errors.FirstOrDefault());
+        }
+
+        private static List<CartItem> GetActiveCartItems(Cart? cart)
+        {
+            return cart?.CartItems?
+                .Where(ci =>
+                    ci.ProductVariant != null &&
+                    ci.ProductVariant.IsActive &&
+                    ci.ProductVariant.Product != null &&
+                    ci.ProductVariant.Product.IsActive)
+                .ToList()
+                ?? new List<CartItem>();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ValidateBeforeCheckout()
+        {
+            var userId = GetUserId();
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "Vui lòng đăng nhập" });
+
+            var cart = await _cartRepo.GetCartWithItemsAsync(userId);
+            var activeItems = GetActiveCartItems(cart);
+
+            if (!activeItems.Any())
+                return BadRequest(new { message = "Giỏ hàng trống" });
+
+            var (isValid, message) = await ValidateCartItemsAsync(activeItems);
+
+            if (!isValid)
+                return BadRequest(new { message = message ?? "Một số sản phẩm trong giỏ hàng không còn đủ số lượng." });
+
+            return Ok(new { success = true });
         }
 
         [HttpPost]
@@ -83,21 +169,10 @@ namespace ASP.Controllers.Front
             if (model.Quantity < 1)
                 return BadRequest(new { message = "Số lượng phải lớn hơn 0" });
 
-            var variant = await _context.ProductVariants
-                .Include(v => v.Product)
-                .FirstOrDefaultAsync(v => v.VariantId == model.VariantId);
+            var stockValidation = await ValidateStockAsync(model.VariantId, model.Quantity);
 
-            if (variant == null)
-                return BadRequest(new { message = "Không tìm thấy biến thể sản phẩm" });
-
-            if (!variant.IsActive)
-                return BadRequest(new { message = "Biến thể này hiện không còn hoạt động" });
-
-            if (variant.Product == null || !variant.Product.IsActive)
-                return BadRequest(new { message = "Sản phẩm này hiện không còn hoạt động" });
-
-            if (variant.QuantityVariants <= 0)
-                return BadRequest(new { message = "Biến thể này đã hết hàng" });
+            if (!stockValidation.IsValid)
+                return BadRequest(new { message = stockValidation.Message });
 
             var cart = await _cartRepo.GetOrCreateCartAsync(userId);
 
@@ -106,11 +181,11 @@ namespace ASP.Controllers.Front
 
             var currentQtyInCart = existingItem?.Quantity ?? 0;
 
-            if (currentQtyInCart + model.Quantity > variant.QuantityVariants)
+            if (currentQtyInCart + model.Quantity > stockValidation.AvailableStock)
             {
                 return BadRequest(new
                 {
-                    message = $"Số lượng vượt quá tồn kho. Chỉ còn {variant.QuantityVariants} sản phẩm."
+                    message = $"Số lượng vượt quá tồn kho. Chỉ còn {stockValidation.AvailableStock} sản phẩm."
                 });
             }
 
@@ -210,6 +285,13 @@ namespace ASP.Controllers.Front
                 item.ProductVariant.Product == null || !item.ProductVariant.Product.IsActive)
             {
                 return BadRequest(new { message = "Sản phẩm này hiện không còn khả dụng" });
+            }
+
+            var stockValidation = await ValidateStockAsync(item.VariantId, model.Quantity);
+
+            if (!stockValidation.IsValid)
+            {
+                return BadRequest(new { message = stockValidation.Message });
             }
 
             await _cartItemRepo.UpdateQuantityAsync(model.CartItemId, model.Quantity);

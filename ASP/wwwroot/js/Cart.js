@@ -1,4 +1,21 @@
 ﻿
+function showCartMessage(icon, message) {
+    if (typeof Swal === 'undefined') {
+        alert(message);
+        return;
+    }
+
+    Swal.fire({
+        title: icon === 'success' ? 'Thành công' : 'Thông báo',
+        text: message,
+        icon: icon,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000
+    });
+}
+
 function updateCartTotal() {
     let total = 0;
     document.querySelectorAll("tbody tr").forEach(row => {
@@ -79,15 +96,18 @@ function setupQuantityButtons() {
             const row = this.closest("tr");
             const input = row.querySelector(".quantity");
             const cartItemId = parseInt(row.dataset.cartitemId);
+            const previousValue = parseInt(input.value) || 1;
 
-            input.value = parseInt(input.value) + 1;
+            input.value = previousValue + 1;
             updateCartTotal();
 
             try {
                 await updateCartItem(cartItemId, parseInt(input.value));
                 await updateCartCount();
             } catch (err) {
-                alert(err.message);
+                input.value = previousValue;
+                updateCartTotal();
+                showCartMessage('error', err.message);
                 console.error(err);
             }
         };
@@ -98,16 +118,19 @@ function setupQuantityButtons() {
             const row = this.closest("tr");
             const input = row.querySelector(".quantity");
             const cartItemId = parseInt(row.dataset.cartitemId);
+            const previousValue = parseInt(input.value) || 1;
 
-            if (parseInt(input.value) > 1) {
-                input.value = parseInt(input.value) - 1;
+            if (previousValue > 1) {
+                input.value = previousValue - 1;
                 updateCartTotal();
 
                 try {
                     await updateCartItem(cartItemId, parseInt(input.value));
                     await updateCartCount();
                 } catch (err) {
-                    alert(err.message);
+                    input.value = previousValue;
+                    updateCartTotal();
+                    showCartMessage('error', err.message);
                     console.error(err);
                 }
             }
@@ -118,6 +141,7 @@ function setupQuantityButtons() {
         input.onchange = async function () {
             const row = this.closest("tr");
             const cartItemId = parseInt(row.dataset.cartitemId);
+            const previousValue = parseInt(this.dataset.lastValidValue || this.defaultValue || this.value) || 1;
 
             if (this.value < 1 || isNaN(parseInt(this.value))) {
                 this.value = 1;
@@ -127,12 +151,17 @@ function setupQuantityButtons() {
 
             try {
                 await updateCartItem(cartItemId, parseInt(this.value));
+                this.dataset.lastValidValue = this.value;
                 await updateCartCount();
             } catch (err) {
-                alert(err.message);
+                this.value = previousValue;
+                updateCartTotal();
+                showCartMessage('error', err.message);
                 console.error(err);
             }
         };
+
+        input.dataset.lastValidValue = input.value;
     });
 }
 
@@ -183,7 +212,7 @@ function setupRemoveItem() {
           
 
         } catch (err) {
-            alert('Không thể xóa sản phẩm: ' + err.message);
+            showCartMessage('error', 'Không thể xóa sản phẩm: ' + err.message);
             console.error(err);
         }
     });
@@ -220,7 +249,7 @@ function setupClearCart() {
 
             location.reload();
         } catch (err) {
-            alert(err.message);
+            showCartMessage('error', err.message);
             console.error(err);
         }
     });
